@@ -20,13 +20,12 @@ starts. Goals are numbered as in the brief: 1 pairing, 2 test screen, 3 Mode A b
 - `core`: MOGA name rules, mode detection, the wizard's decision rules, and the HID
   mapping. 29 JVM unit tests.
 
-**Verified here:** `core` compiles and all 29 tests pass. `data` compiles against the
-Android 17 framework classes. The view models and every `…Content` composable compile
-against Compose (JetBrains' desktop build, since Google's Maven repository is blocked in
-the environment that built this). **Not verified here:** the full Gradle/AGP build, the
-seven Android-only glue files (`MainActivity`, `SwivelNavHost`, `ViewModelFactories`,
-`Theme`, the three `…Screen` wrappers) and anything on a real phone. The first Gradle sync
-in Android Studio is the first real build.
+**Verified:** `core` compiles and all 29 tests pass on the JVM. `data` compiles against the
+Android 17 framework classes, and the view models and `…Content` composables against
+Compose. The owner's first Gradle sync (AGP 9.2.1) built the app, which installed and
+opened on a Pixel 9 Pro emulator (API 37.1) showing the home screen. **Not yet verified:**
+the unit tests under AGP, and anything that needs real Bluetooth, which the emulator
+cannot provide.
 
 **Hardware test, please report back**
 1. Home with nothing paired: no crash, nothing listed.
