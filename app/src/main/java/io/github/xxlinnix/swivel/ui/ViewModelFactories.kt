@@ -10,6 +10,7 @@ import io.github.xxlinnix.swivel.data.ControllerRepository
 import io.github.xxlinnix.swivel.ui.home.HomeViewModel
 import io.github.xxlinnix.swivel.ui.pairing.PairingViewModel
 import io.github.xxlinnix.swivel.ui.test.ControllerTestViewModel
+import io.github.xxlinnix.swivel.ui.test.ModeATestViewModel
 
 /** Hands each view model the repository from the app container. */
 object ViewModelFactories {
@@ -25,6 +26,13 @@ object ViewModelFactories {
         initializer {
             val descriptor = checkNotNull(createSavedStateHandle().get<String>(TEST_DESCRIPTOR_ARG))
             ControllerTestViewModel(descriptor, repository())
+        }
+    }
+
+    val modeATest = viewModelFactory {
+        initializer {
+            val address = checkNotNull(createSavedStateHandle().get<String>(MODE_A_ADDRESS_ARG))
+            ModeATestViewModel(address, repository())
         }
     }
 

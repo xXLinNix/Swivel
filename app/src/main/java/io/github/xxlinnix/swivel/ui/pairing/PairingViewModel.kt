@@ -170,6 +170,9 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
         }
     }
 
+    /** Only from the visible screen: it starts a foreground service. */
+    fun connectModeA(address: String) = repository.connectModeA(address)
+
     /** "Check again" after the user moved the switch or woke the controller. */
     fun checkAgain(address: String, name: String?) {
         freshUuids.remove(address)

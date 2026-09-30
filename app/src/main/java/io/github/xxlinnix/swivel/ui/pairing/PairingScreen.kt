@@ -19,12 +19,14 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import io.github.xxlinnix.swivel.ui.BluetoothPermissions
 import io.github.xxlinnix.swivel.ui.ViewModelFactories
 import io.github.xxlinnix.swivel.ui.findActivity
+import io.github.xxlinnix.swivel.ui.rememberModeAConnect
 
 /** Connects the wizard to the Android pieces it needs: permission, enable and chooser dialogs. */
 @SuppressLint("MissingPermission") // ACTION_REQUEST_ENABLE is only offered once BLUETOOTH_CONNECT is granted.
 @Composable
 fun PairingScreen(
     onOpenTest: (descriptor: String) -> Unit,
+    onOpenModeATest: (address: String) -> Unit,
     onClose: () -> Unit,
     viewModel: PairingViewModel = viewModel(factory = ViewModelFactories.pairing),
 ) {
@@ -54,6 +56,10 @@ fun PairingScreen(
         }
     }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.onResume() }
+    val connectModeA = rememberModeAConnect { address ->
+        viewModel.connectModeA(address)
+        onOpenModeATest(address)
+    }
 
     PairingContent(
         state = state,
@@ -74,6 +80,7 @@ fun PairingScreen(
             onBackToPrepare = viewModel::backToPrepare,
             onRestart = viewModel::restart,
             onOpenTest = onOpenTest,
+            onConnectModeA = connectModeA,
             onClose = onClose,
         ),
     )

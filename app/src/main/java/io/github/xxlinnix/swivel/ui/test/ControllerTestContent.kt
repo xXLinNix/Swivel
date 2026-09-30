@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -31,38 +33,34 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import io.github.xxlinnix.swivel.core.model.GamepadButton
 import io.github.xxlinnix.swivel.core.model.Stick
-import io.github.xxlinnix.swivel.data.input.GamepadInfo
 import io.github.xxlinnix.swivel.ui.common.BodyText
 import io.github.xxlinnix.swivel.ui.common.Hint
 import io.github.xxlinnix.swivel.ui.common.Section
 import io.github.xxlinnix.swivel.ui.common.batteryLabel
-import io.github.xxlinnix.swivel.ui.common.hex4
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ControllerTestContent(state: TestUiState, onBack: () -> Unit) {
-    val info = state.info
+fun ControllerTestContent(state: TestUiState, onBack: () -> Unit, onReconnect: () -> Unit = {}) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(info?.name ?: "Controller test") },
+                title = { Text(state.title ?: "Controller test") },
                 navigationIcon = { TextButton(onClick = onBack) { Text("Back") } },
             )
         },
     ) { padding ->
-        if (info == null) {
-            Box(
+        if (!state.connected) {
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(padding)
                     .padding(24.dp),
-                contentAlignment = Alignment.Center,
+                verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                BodyText(
-                    if (state.loading) "Connecting…"
-                    else "The controller is disconnected. Press a button on it to wake it up and it will come back here.",
-                )
+                if (state.loading) CircularProgressIndicator()
+                BodyText(state.status ?: "Connecting…")
+                if (state.canReconnect) Button(onClick = onReconnect) { Text("Connect") }
             }
             return@Scaffold
         }
@@ -73,22 +71,23 @@ fun ControllerTestContent(state: TestUiState, onBack: () -> Unit) {
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-            item { DeviceSection(info, state) }
+            item { DeviceSection(state) }
             item { SticksAndTriggers(state) }
             item { Buttons(state.snapshot.pressed) }
-            item { RawAxes(info, state.snapshot.rawAxes) }
-            item { KeySection(state) }
+            item { RawAxes(state.axes) }
+            state.rawReport?.let { report -> item { RawReport(report) } }
+            item { EventSection(state) }
         }
     }
 }
 
 @Composable
-private fun DeviceSection(info: GamepadInfo, state: TestUiState) {
+private fun DeviceSection(state: TestUiState) {
     Section("Device") {
-        BodyText(if (info.looksLikeMoga) "MOGA in Mode B (Bluetooth HID)" else "Bluetooth or USB gamepad")
-        Mono("vendor ${hex4(info.vendorId)}  product ${hex4(info.productId)}  player ${info.controllerNumber}")
+        BodyText(state.summary)
+        state.details.forEach { Mono(it) }
         BodyText(batteryLabel(state.battery))
-        Hint("Back and focus movement are off on this screen so every button can be tested. Use Back at the top.")
+        state.hint?.let { Hint(it) }
     }
 }
 
@@ -173,27 +172,33 @@ private fun RowScope.Lamp(label: String, lit: Boolean) {
 }
 
 @Composable
-private fun RawAxes(info: GamepadInfo, values: Map<Int, Float>) {
+private fun RawAxes(axes: List<AxisRow>) {
     Section("Raw axes") {
-        if (info.axes.isEmpty()) BodyText("This controller declares no joystick axes.")
-        info.axes.forEach { axis ->
+        if (axes.isEmpty()) BodyText("This controller declares no joystick axes.")
+        axes.forEach { row ->
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Mono(axis.label)
-                Mono("${fmt(values[axis.axis] ?: 0f)}  [${fmt(axis.min)}, ${fmt(axis.max)}] flat ${fmt(axis.flat)}")
+                Mono(row.label)
+                Mono("${fmt(row.value)}  ${row.detail}".trimEnd())
             }
         }
     }
 }
 
 @Composable
-private fun KeySection(state: TestUiState) {
-    Section("Key events") {
+private fun RawReport(report: String) {
+    Section("Last report") {
+        Mono(report)
+        Hint("7A, length, code, id, buttons, pad, left X, left Y, right X, right Y, [L2, R2,] power, checksum")
+    }
+}
+
+@Composable
+private fun EventSection(state: TestUiState) {
+    Section("Events") {
         val unmapped = state.snapshot.unmappedKeysDown
         if (unmapped.isNotEmpty()) BodyText("Held keys with no button mapping: ${unmapped.sorted().joinToString()}")
-        if (state.keyLog.isEmpty()) BodyText("Press a button.")
-        state.keyLog.take(12).forEach { entry ->
-            Mono("${if (entry.down) "down" else "up  "} ${entry.label} (${entry.keyCode}) scan ${entry.scanCode}")
-        }
+        if (state.events.isEmpty()) BodyText("Press a button.")
+        state.events.take(12).forEach { Mono(it) }
     }
 }
 
@@ -201,5 +206,3 @@ private fun KeySection(state: TestUiState) {
 private fun Mono(text: String) {
     Text(text, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace)
 }
-
-private fun fmt(value: Float): String = String.format(Locale.US, "%+.3f", value)

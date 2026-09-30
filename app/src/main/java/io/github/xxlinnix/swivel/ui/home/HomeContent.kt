@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,10 +24,22 @@ import io.github.xxlinnix.swivel.ui.common.BodyText
 import io.github.xxlinnix.swivel.ui.common.Hint
 import io.github.xxlinnix.swivel.ui.common.Section
 import io.github.xxlinnix.swivel.ui.common.verdictLabel
+import io.github.xxlinnix.swivel.ui.common.modeAStatus
+import io.github.xxlinnix.swivel.core.model.ControllerMode
+import io.github.xxlinnix.swivel.data.PairedMoga
+import io.github.xxlinnix.swivel.data.modea.ModeAState
+import io.github.xxlinnix.swivel.data.modea.address
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeContent(state: HomeUiState, onPair: () -> Unit, onTest: (descriptor: String) -> Unit) {
+fun HomeContent(
+    state: HomeUiState,
+    onPair: () -> Unit,
+    onTest: (descriptor: String) -> Unit,
+    onConnectModeA: (address: String) -> Unit,
+    onDisconnectModeA: () -> Unit,
+    onTestModeA: (address: String) -> Unit,
+) {
     Scaffold(topBar = { TopAppBar(title = { Text("Swivel") }) }) { padding ->
         LazyColumn(
             modifier = Modifier
@@ -39,7 +52,7 @@ fun HomeContent(state: HomeUiState, onPair: () -> Unit, onTest: (descriptor: Str
                 Section("Connected controllers") {
                     if (state.gamepads.isEmpty()) {
                         BodyText("No controller is connected. Turn yours on, or pair one.")
-                        Hint("Only Mode B controllers appear here for now. Mode A arrives in milestone 2.")
+                        Hint("Mode A controllers are connected from the list below.")
                     }
                     state.gamepads.forEach { pad ->
                         Row(
@@ -67,10 +80,7 @@ fun HomeContent(state: HomeUiState, onPair: () -> Unit, onTest: (descriptor: Str
                         )
                         paired.isEmpty() -> BodyText("None yet.")
                         else -> paired.forEach { moga ->
-                            Column {
-                                Text(moga.device.name ?: moga.device.address, style = MaterialTheme.typography.bodyLarge)
-                                Hint(verdictLabel(moga.verdict))
-                            }
+                            PairedRow(moga, state.modeA, onConnectModeA, onDisconnectModeA, onTestModeA)
                         }
                     }
                 }
@@ -80,6 +90,33 @@ fun HomeContent(state: HomeUiState, onPair: () -> Unit, onTest: (descriptor: Str
             }
             item {
                 Hint("Swivel is an independent app. MOGA is a trademark of PowerA, which has no part in it.")
+            }
+        }
+    }
+}
+
+@Composable
+private fun PairedRow(
+    moga: PairedMoga,
+    modeA: ModeAState,
+    onConnect: (String) -> Unit,
+    onDisconnect: () -> Unit,
+    onTest: (String) -> Unit,
+) {
+    val address = moga.device.address
+    val linked = modeA.address == address && modeA !is ModeAState.Stopped
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(moga.device.name ?: address, style = MaterialTheme.typography.bodyLarge)
+        Hint(verdictLabel(moga.verdict))
+        if (moga.verdict.mode == ControllerMode.A) {
+            if (modeA.address == address) Hint(modeAStatus(modeA))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (linked) {
+                    Button(onClick = { onTest(address) }) { Text("Test") }
+                    OutlinedButton(onClick = onDisconnect) { Text("Disconnect") }
+                } else {
+                    Button(onClick = { onConnect(address) }) { Text("Connect") }
+                }
             }
         }
     }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import io.github.xxlinnix.swivel.data.ControllerRepository
 import io.github.xxlinnix.swivel.data.PairedMoga
 import io.github.xxlinnix.swivel.data.input.GamepadInfo
+import io.github.xxlinnix.swivel.data.modea.ModeAState
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ data class HomeUiState(
     /** Null when the app lacks the Nearby devices permission and cannot list pairings. */
     val paired: List<PairedMoga>? = null,
     val bluetoothOn: Boolean = true,
+    val modeA: ModeAState = ModeAState.Idle,
 )
 
 class HomeViewModel(private val repository: ControllerRepository) : ViewModel() {
@@ -28,11 +30,13 @@ class HomeViewModel(private val repository: ControllerRepository) : ViewModel() 
         repository.gamepads,
         resumes,
         repository.bluetoothEvents().map { }.onStart { emit(Unit) },
-    ) { gamepads, _, _ ->
+        repository.modeAState,
+    ) { gamepads, _, _, modeA ->
         HomeUiState(
             gamepads = gamepads,
             paired = if (repository.hasConnectPermission()) repository.pairedMogas() else null,
             bluetoothOn = repository.bluetoothEnabled,
+            modeA = modeA,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 
@@ -40,4 +44,9 @@ class HomeViewModel(private val repository: ControllerRepository) : ViewModel() 
     fun onResume() {
         resumes.update { it + 1 }
     }
+
+    /** Only from the visible screen: it starts a foreground service. */
+    fun connectModeA(address: String) = repository.connectModeA(address)
+
+    fun disconnectModeA() = repository.disconnectModeA()
 }

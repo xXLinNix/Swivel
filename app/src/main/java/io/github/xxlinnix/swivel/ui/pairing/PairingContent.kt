@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import io.github.xxlinnix.swivel.core.detect.MogaNames
 import io.github.xxlinnix.swivel.core.model.ControllerMode
 import io.github.xxlinnix.swivel.ui.common.BodyText
 import io.github.xxlinnix.swivel.ui.common.Hint
@@ -43,6 +44,7 @@ class PairingActions(
     val onBackToPrepare: () -> Unit = {},
     val onRestart: () -> Unit = {},
     val onOpenTest: (String) -> Unit = {},
+    val onConnectModeA: (String) -> Unit = {},
     val onClose: () -> Unit = {},
 )
 
@@ -235,12 +237,12 @@ private fun ReadyModeB(step: PairingStep.ReadyModeB, actions: PairingActions) {
 @Composable
 private fun PairedModeA(step: PairingStep.PairedModeA, actions: PairingActions) {
     Section("Paired in Mode A") {
-        BodyText(
-            "${step.name ?: "The controller"} is paired and answering in Mode A. Swivel cannot talk " +
-                "to Mode A yet: that is the next milestone.",
-        )
-        BodyText("Until then, slide the switch to B to use it as a standard gamepad.")
-        Button(onClick = actions.onClose) { Text("Done") }
+        BodyText("${step.name ?: "The controller"} is paired and answering in Mode A.")
+        if (MogaNames.isFirstGeneration(step.name)) {
+            Hint("This is a first-generation MOGA, such as the Pocket: Mode A is the only mode it has.")
+        }
+        Button(onClick = { actions.onConnectModeA(step.address) }) { Text("Connect and test") }
+        OutlinedButton(onClick = actions.onClose) { Text("Done") }
     }
 }
 

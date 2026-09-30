@@ -10,15 +10,19 @@ import androidx.navigation.navArgument
 import io.github.xxlinnix.swivel.ui.home.HomeScreen
 import io.github.xxlinnix.swivel.ui.pairing.PairingScreen
 import io.github.xxlinnix.swivel.ui.test.ControllerTestScreen
+import io.github.xxlinnix.swivel.ui.test.ModeATestScreen
 
 const val TEST_DESCRIPTOR_ARG = "descriptor"
+const val MODE_A_ADDRESS_ARG = "address"
 
 private object Routes {
     const val HOME = "home"
     const val PAIR = "pair"
     const val TEST = "test/{$TEST_DESCRIPTOR_ARG}"
+    const val MODE_A_TEST = "modea/{$MODE_A_ADDRESS_ARG}"
 
     fun test(descriptor: String) = "test/${Uri.encode(descriptor)}"
+    fun modeATest(address: String) = "modea/${Uri.encode(address)}"
 }
 
 @Composable
@@ -29,12 +33,16 @@ fun SwivelNavHost() {
             HomeScreen(
                 onPair = { nav.navigate(Routes.PAIR) },
                 onTest = { descriptor -> nav.navigate(Routes.test(descriptor)) },
+                onTestModeA = { address -> nav.navigate(Routes.modeATest(address)) },
             )
         }
         composable(Routes.PAIR) {
             PairingScreen(
                 onOpenTest = { descriptor ->
                     nav.navigate(Routes.test(descriptor)) { popUpTo(Routes.HOME) }
+                },
+                onOpenModeATest = { address ->
+                    nav.navigate(Routes.modeATest(address)) { popUpTo(Routes.HOME) }
                 },
                 onClose = { nav.popBackStack(Routes.HOME, inclusive = false) },
             )
@@ -44,6 +52,12 @@ fun SwivelNavHost() {
             arguments = listOf(navArgument(TEST_DESCRIPTOR_ARG) { type = NavType.StringType }),
         ) {
             ControllerTestScreen(onBack = { nav.popBackStack() })
+        }
+        composable(
+            route = Routes.MODE_A_TEST,
+            arguments = listOf(navArgument(MODE_A_ADDRESS_ARG) { type = NavType.StringType }),
+        ) {
+            ModeATestScreen(onBack = { nav.popBackStack() })
         }
     }
 }
