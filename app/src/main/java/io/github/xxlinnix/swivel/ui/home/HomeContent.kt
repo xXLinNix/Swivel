@@ -83,6 +83,10 @@ fun HomeContent(
                             PairedRow(moga, state.modeA, onConnectModeA, onDisconnectModeA, onTestModeA)
                         }
                     }
+                    if (state.bridgeGames > 0) {
+                        val games = if (state.bridgeGames == 1) "1 MOGA game is" else "${state.bridgeGames} MOGA games are"
+                        Hint("$games listening through the MOGA SDK bridge.")
+                    }
                 }
             }
             item {

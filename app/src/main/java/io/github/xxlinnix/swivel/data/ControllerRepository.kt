@@ -33,6 +33,7 @@ class ControllerRepository(
     private val companion: CompanionPairing,
     private val input: GamepadInputSource,
     private val modeA: ModeALink,
+    bridgeGames: StateFlow<Int>,
 ) {
     private val context = context.applicationContext
 
@@ -72,6 +73,9 @@ class ControllerRepository(
     val modeASnapshot: StateFlow<ControllerSnapshot> get() = modeA.snapshot
     val modeABattery: StateFlow<BatteryReading> get() = modeA.battery
     val modeALastReport: StateFlow<String?> get() = modeA.lastReport
+
+    /** Games listening through the MOGA SDK bridge. */
+    val bridgeGames: StateFlow<Int> = bridgeGames
 
     /** Starts the Mode A link in its foreground service. Call from a visible screen only. */
     fun connectModeA(address: String) = ModeAService.connect(context, address)

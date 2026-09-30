@@ -28,11 +28,15 @@ import java.util.UUID
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.isActive
@@ -56,6 +60,16 @@ class ModeALink(context: Context, private val scope: CoroutineScope) {
 
     private val _snapshot = MutableStateFlow(ControllerSnapshot())
     val snapshot: StateFlow<ControllerSnapshot> = _snapshot.asStateFlow()
+
+    /**
+     * Every report in order, for the MOGA SDK bridge. [snapshot] keeps only the latest
+     * value, so a quick tap between two reads of it would be lost to a game.
+     */
+    private val _reports = MutableSharedFlow<ControllerSnapshot>(
+        extraBufferCapacity = 64,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST,
+    )
+    val reports: SharedFlow<ControllerSnapshot> = _reports.asSharedFlow()
 
     private val _battery = MutableStateFlow<BatteryReading>(BatteryReading.NotReported)
     val battery: StateFlow<BatteryReading> = _battery.asStateFlow()
@@ -240,6 +254,7 @@ class ModeALink(context: Context, private val scope: CoroutineScope) {
                     progress.generation = report.generation
                     progress.lastReportAt = SystemClock.elapsedRealtime()
                     _snapshot.value = report.snapshot
+                    _reports.tryEmit(report.snapshot)
                     _battery.value = BatteryReading.LowFlag(report.lowBattery)
                     _lastReport.value = frame.hex()
                     val current = _state.value
@@ -302,6 +317,7 @@ class ModeALink(context: Context, private val scope: CoroutineScope) {
 
     private fun resetControls() {
         _snapshot.value = ControllerSnapshot()
+        _reports.tryEmit(ControllerSnapshot()) // Games see every held button released.
         _battery.value = BatteryReading.NotReported
         _lastReport.value = null
     }

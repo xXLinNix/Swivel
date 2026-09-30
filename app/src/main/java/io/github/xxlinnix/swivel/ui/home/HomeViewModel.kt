@@ -21,6 +21,8 @@ data class HomeUiState(
     val paired: List<PairedMoga>? = null,
     val bluetoothOn: Boolean = true,
     val modeA: ModeAState = ModeAState.Idle,
+    /** Old MOGA-enhanced games listening through the SDK bridge. */
+    val bridgeGames: Int = 0,
 )
 
 class HomeViewModel(private val repository: ControllerRepository) : ViewModel() {
@@ -31,12 +33,14 @@ class HomeViewModel(private val repository: ControllerRepository) : ViewModel() 
         resumes,
         repository.bluetoothEvents().map { }.onStart { emit(Unit) },
         repository.modeAState,
-    ) { gamepads, _, _, modeA ->
+        repository.bridgeGames,
+    ) { gamepads, _, _, modeA, bridgeGames ->
         HomeUiState(
             gamepads = gamepads,
             paired = if (repository.hasConnectPermission()) repository.pairedMogas() else null,
             bluetoothOn = repository.bluetoothEnabled,
             modeA = modeA,
+            bridgeGames = bridgeGames,
         )
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HomeUiState())
 

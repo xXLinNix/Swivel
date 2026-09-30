@@ -9,6 +9,7 @@ import io.github.xxlinnix.swivel.data.modea.ModeALink
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.MutableStateFlow
 
 /**
  * Builds the app's long-lived objects once. Constructor injection by hand: the graph is
@@ -21,5 +22,8 @@ class AppContainer(context: Context) {
     val input = GamepadInputSource(context)
     val bluetooth = BluetoothGateway(context)
     val modeALink = ModeALink(context, appScope)
-    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink)
+    /** How many games are listening through the MOGA SDK bridge. Set by MogaSdkService. */
+    val bridgeGames = MutableStateFlow(0)
+
+    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink, bridgeGames)
 }
