@@ -1,6 +1,6 @@
-# Every dependency here is AndroidX, Compose, Kotlin or kotlinx-coroutines, plus
-# JUnit 4 for unit tests only (approved by the owner, never packaged). Ask before
-# adding anything else (docs/DECISIONS.md, D-004).
+# Every dependency here is AndroidX, Compose, Kotlin or kotlinx-coroutines, plus two the
+# owner approved: JUnit 4 for unit tests only (never packaged), and the Shizuku API (MIT)
+# for the virtual gamepad. Ask before adding anything else (docs/DECISIONS.md, D-004).
 [versions]
 agp = "9.2.1"
 kotlin = "2.4.20"
@@ -10,6 +10,7 @@ lifecycle = "2.11.0"
 navigation = "2.10.2"
 composeBom = "2026.09.00"
 coroutines = "1.11.0"
+shizuku = "13.1.5"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -25,6 +26,8 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-android", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+shizuku-api = { group = "dev.rikka.shizuku", name = "api", version.ref = "shizuku" }
+shizuku-provider = { group = "dev.rikka.shizuku", name = "provider", version.ref = "shizuku" }
 kotlin-test = { group = "org.jetbrains.kotlin", name = "kotlin-test-junit", version.ref = "kotlin" }
 
 [plugins]

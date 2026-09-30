@@ -13,6 +13,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -29,6 +30,8 @@ import io.github.xxlinnix.swivel.core.model.ControllerMode
 import io.github.xxlinnix.swivel.data.PairedMoga
 import io.github.xxlinnix.swivel.data.modea.ModeAState
 import io.github.xxlinnix.swivel.data.modea.address
+import io.github.xxlinnix.swivel.data.virtualpad.ShizukuStatus
+import io.github.xxlinnix.swivel.data.virtualpad.VirtualPadState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +42,7 @@ fun HomeContent(
     onConnectModeA: (address: String) -> Unit,
     onDisconnectModeA: () -> Unit,
     onTestModeA: (address: String) -> Unit,
+    padActions: VirtualPadActions = VirtualPadActions(),
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Swivel") }) }) { padding ->
         LazyColumn(
@@ -89,6 +93,7 @@ fun HomeContent(
                     }
                 }
             }
+            item { VirtualPadSection(state, padActions) }
             item {
                 Button(onClick = onPair, modifier = Modifier.fillMaxWidth()) { Text("Pair a controller") }
             }
@@ -122,6 +127,62 @@ private fun PairedRow(
                     Button(onClick = { onConnect(address) }) { Text("Connect") }
                 }
             }
+        }
+    }
+}
+
+/** What the "Play Store games" section can ask the Android side to do. */
+class VirtualPadActions(
+    val onEnabled: (Boolean) -> Unit = {},
+    val onGetShizuku: () -> Unit = {},
+    val onOpenShizuku: () -> Unit = {},
+    val onAllowInShizuku: () -> Unit = {},
+)
+
+@Composable
+private fun VirtualPadSection(state: HomeUiState, actions: VirtualPadActions) {
+    Section("Play Store games") {
+        BodyText(
+            "Swivel can show a Mode A controller to Android as a standard gamepad, so any game " +
+                "that supports controllers can use it. This needs the free Shizuku app.",
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text("Share as a gamepad", style = MaterialTheme.typography.bodyLarge)
+            Switch(checked = state.virtualPadEnabled, onCheckedChange = actions.onEnabled)
+        }
+        when (val pad = state.virtualPad) {
+            VirtualPadState.Off -> Hint("Off.")
+            is VirtualPadState.WaitingForShizuku -> when (pad.status) {
+                ShizukuStatus.NOT_INSTALLED -> {
+                    BodyText("Install Shizuku from the Play Store, then come back here.")
+                    Button(onClick = actions.onGetShizuku) { Text("Get Shizuku") }
+                }
+                ShizukuStatus.NOT_RUNNING -> {
+                    BodyText(
+                        "Start Shizuku: open it and follow \"Start via Wireless debugging\". " +
+                            "Android stops it on every restart, so this is needed again after one.",
+                    )
+                    Button(onClick = actions.onOpenShizuku) { Text("Open Shizuku") }
+                }
+                ShizukuStatus.TOO_OLD -> BodyText("This version of Shizuku is too old. Update it from the Play Store.")
+                ShizukuStatus.NEEDS_PERMISSION -> {
+                    BodyText("Shizuku is running. Allow Swivel to use it.")
+                    Button(onClick = actions.onAllowInShizuku) { Text("Allow Swivel in Shizuku") }
+                }
+                ShizukuStatus.READY -> Hint("Starting…")
+            }
+            VirtualPadState.WaitingForController ->
+                Hint("Ready. Connect your controller above and it appears to games at once.")
+            VirtualPadState.Starting -> Hint("Starting the virtual gamepad…")
+            VirtualPadState.Active -> {
+                BodyText("Games now see your controller as a standard gamepad (Xbox 360 layout).")
+                Hint("It is listed under Connected controllers too; Test it to see exactly what games receive. Select acts as Back.")
+            }
+            is VirtualPadState.Failed -> BodyText("Could not create the gamepad: ${pad.reason}")
         }
     }
 }

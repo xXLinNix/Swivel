@@ -6,6 +6,8 @@ import io.github.xxlinnix.swivel.data.bluetooth.BluetoothGateway
 import io.github.xxlinnix.swivel.data.bluetooth.CompanionPairing
 import io.github.xxlinnix.swivel.data.input.GamepadInputSource
 import io.github.xxlinnix.swivel.data.modea.ModeALink
+import io.github.xxlinnix.swivel.data.virtualpad.ShizukuGate
+import io.github.xxlinnix.swivel.data.virtualpad.VirtualPad
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -25,5 +27,8 @@ class AppContainer(context: Context) {
     /** How many games are listening through the MOGA SDK bridge. Set by MogaSdkService. */
     val bridgeGames = MutableStateFlow(0)
 
-    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink, bridgeGames)
+    val shizuku = ShizukuGate(context)
+    val virtualPad = VirtualPad(context, appScope, shizuku, modeALink)
+
+    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink, bridgeGames, shizuku, virtualPad)
 }

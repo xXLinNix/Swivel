@@ -52,6 +52,16 @@ class ModeATestViewModel(
     /** Only from the visible screen: it starts a foreground service. */
     fun reconnect() = repository.connectModeA(address)
 
+    /**
+     * With the virtual gamepad on, the controller's presses also reach Swivel itself.
+     * Swallow them here, as the Mode B test screen does, so B and Select do not act as Back.
+     */
+    fun setCapture(capture: Boolean) = repository.setCaptureAll(capture)
+
+    override fun onCleared() {
+        repository.setCaptureAll(false)
+    }
+
     private fun toUi(
         link: ModeAState,
         snapshot: ControllerSnapshot,

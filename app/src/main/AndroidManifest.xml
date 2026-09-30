@@ -29,6 +29,11 @@
     <!-- Android 13+: lets the service's notification, with its Disconnect button, be shown. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
+    <!-- To tell whether Shizuku is installed and open it (package visibility, Android 11+). -->
+    <queries>
+        <package android:name="moe.shizuku.privileged.api" />
+    </queries>
+
     <uses-feature
         android:name="android.hardware.bluetooth"
         android:required="true" />
@@ -82,6 +87,18 @@
                 <action android:name="com.bda.controller.IControllerService" />
             </intent-filter>
         </service>
+
+        <!--
+            How Shizuku hands Swivel its binder. Declared as Shizuku's documentation
+            requires: only the system (INTERACT_ACROSS_USERS_FULL) can call it.
+        -->
+        <provider
+            android:name="rikka.shizuku.ShizukuProvider"
+            android:authorities="${applicationId}.shizuku"
+            android:enabled="true"
+            android:exported="true"
+            android:multiprocess="false"
+            android:permission="android.permission.INTERACT_ACROSS_USERS_FULL" />
     </application>
 
 </manifest>

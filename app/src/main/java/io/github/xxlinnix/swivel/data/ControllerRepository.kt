@@ -17,6 +17,10 @@ import io.github.xxlinnix.swivel.data.input.KeyLogEntry
 import io.github.xxlinnix.swivel.data.modea.ModeALink
 import io.github.xxlinnix.swivel.data.modea.ModeAService
 import io.github.xxlinnix.swivel.data.modea.ModeAState
+import io.github.xxlinnix.swivel.data.virtualpad.ShizukuGate
+import io.github.xxlinnix.swivel.data.virtualpad.ShizukuStatus
+import io.github.xxlinnix.swivel.data.virtualpad.VirtualPad
+import io.github.xxlinnix.swivel.data.virtualpad.VirtualPadState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -34,6 +38,8 @@ class ControllerRepository(
     private val input: GamepadInputSource,
     private val modeA: ModeALink,
     bridgeGames: StateFlow<Int>,
+    private val shizuku: ShizukuGate,
+    private val virtualPad: VirtualPad,
 ) {
     private val context = context.applicationContext
 
@@ -76,6 +82,14 @@ class ControllerRepository(
 
     /** Games listening through the MOGA SDK bridge. */
     val bridgeGames: StateFlow<Int> = bridgeGames
+
+    val shizukuStatus: StateFlow<ShizukuStatus> get() = shizuku.status
+    val virtualPadState: StateFlow<VirtualPadState> get() = virtualPad.state
+    val virtualPadEnabled: StateFlow<Boolean> get() = virtualPad.enabled
+
+    fun setVirtualPadEnabled(enabled: Boolean) = virtualPad.setEnabled(enabled)
+    fun requestShizukuPermission() = shizuku.requestPermission()
+    fun refreshShizuku() = shizuku.refresh()
 
     /** Starts the Mode A link in its foreground service. Call from a visible screen only. */
     fun connectModeA(address: String) = ModeAService.connect(context, address)
