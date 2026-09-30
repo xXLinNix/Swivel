@@ -5,12 +5,21 @@ import io.github.xxlinnix.swivel.data.ControllerRepository
 import io.github.xxlinnix.swivel.data.bluetooth.BluetoothGateway
 import io.github.xxlinnix.swivel.data.bluetooth.CompanionPairing
 import io.github.xxlinnix.swivel.data.input.GamepadInputSource
+import io.github.xxlinnix.swivel.data.modea.ModeALink
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 
 /**
  * Builds the app's long-lived objects once. Constructor injection by hand: the graph is
  * small, and a DI library would be a dependency to ask about (docs/DECISIONS.md, D-005).
  */
 class AppContainer(context: Context) {
+    /** Work that outlives any screen, such as the Mode A link. */
+    val appScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
     val input = GamepadInputSource(context)
-    val repository = ControllerRepository(BluetoothGateway(context), CompanionPairing(context), input)
+    val bluetooth = BluetoothGateway(context)
+    val modeALink = ModeALink(context, appScope)
+    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink)
 }

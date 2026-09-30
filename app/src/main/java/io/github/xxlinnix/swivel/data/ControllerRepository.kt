@@ -1,5 +1,6 @@
 package io.github.xxlinnix.swivel.data
 
+import android.content.Context
 import android.content.Intent
 import io.github.xxlinnix.swivel.core.detect.ModeDetector
 import io.github.xxlinnix.swivel.core.detect.ModeEvidence
@@ -13,6 +14,9 @@ import io.github.xxlinnix.swivel.data.bluetooth.PairedDevice
 import io.github.xxlinnix.swivel.data.input.GamepadInfo
 import io.github.xxlinnix.swivel.data.input.GamepadInputSource
 import io.github.xxlinnix.swivel.data.input.KeyLogEntry
+import io.github.xxlinnix.swivel.data.modea.ModeALink
+import io.github.xxlinnix.swivel.data.modea.ModeAService
+import io.github.xxlinnix.swivel.data.modea.ModeAState
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 
@@ -24,10 +28,14 @@ data class PairedMoga(val device: PairedDevice, val verdict: ModeVerdict)
  * (pairings, services) with what the input system knows (gamepads, their input).
  */
 class ControllerRepository(
+    context: Context,
     private val bluetooth: BluetoothGateway,
     private val companion: CompanionPairing,
     private val input: GamepadInputSource,
+    private val modeA: ModeALink,
 ) {
+    private val context = context.applicationContext
+
     val gamepads: StateFlow<List<GamepadInfo>> get() = input.gamepads
     val keyLog: StateFlow<List<KeyLogEntry>> get() = input.keyLog
 
@@ -59,6 +67,16 @@ class ControllerRepository(
     fun refreshServices(address: String): Boolean = bluetooth.refreshServices(address)
     fun startDiscovery(): Boolean = bluetooth.startDiscovery()
     fun cancelDiscovery() = bluetooth.cancelDiscovery()
+
+    val modeAState: StateFlow<ModeAState> get() = modeA.state
+    val modeASnapshot: StateFlow<ControllerSnapshot> get() = modeA.snapshot
+    val modeABattery: StateFlow<BatteryReading> get() = modeA.battery
+    val modeALastReport: StateFlow<String?> get() = modeA.lastReport
+
+    /** Starts the Mode A link in its foreground service. Call from a visible screen only. */
+    fun connectModeA(address: String) = ModeAService.connect(context, address)
+
+    fun disconnectModeA() = modeA.stop()
 
     /**
      * The gamepad input device that belongs to a paired controller. Android names the input
