@@ -2,7 +2,7 @@
 # JUnit 4 for unit tests only (approved by the owner, never packaged). Ask before
 # adding anything else (docs/DECISIONS.md, D-004).
 [versions]
-agp = "9.4.0"
+agp = "9.2.1"
 kotlin = "2.4.20"
 coreKtx = "1.19.1"
 activityCompose = "1.13.0"

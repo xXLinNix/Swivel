@@ -15,7 +15,7 @@ part in it. It contains no PowerA code or art.
 ## Setting up (once)
 
 1. **Android Studio.** Install the current stable release from
-   developer.android.com/studio. This project uses Android Gradle Plugin 9.4. If Studio says
+   developer.android.com/studio. This project uses Android Gradle Plugin 9.2.1. If Studio says
    the plugin is too new, use Help → Check for Updates.
 2. **Open the project.** File → Open, and pick this folder (the one with
    `settings.gradle.kts`). Studio downloads Gradle 9.6.0 and the libraries on the first

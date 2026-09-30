@@ -13,9 +13,9 @@ Each one records What, Why and the Trade-off.
 **Trade-off.** MOGA-enhanced games built with a later SDK may bind to Pivot's package by name, which would keep them from finding a bridge (RESEARCH.md). Revisit only in M3, and only for a private build.
 
 ## D-003: Current toolchain, built-in Kotlin
-**What.** AGP 9.4.0, Gradle 9.6.0, Kotlin 2.4.20, Compose BOM 2026.09.00, compileSdk and targetSdk 37 (Android 17), minSdk 26, JDK 17 bytecode. AGP 9's built-in Kotlin is used, so the `kotlin-android` plugin is not applied.
-**Why.** The brief asks for the latest target. These were the current stable versions on 2026-09-30. AGP 9.4 supports API 37 at most.
-**Trade-off.** It needs a recent Android Studio. An older one will refuse to sync until it is updated.
+**What.** AGP 9.2.1, Gradle 9.6.0, Kotlin 2.4.20, Compose BOM 2026.09.00, compileSdk and targetSdk 37 (Android 17), minSdk 26, JDK 17 bytecode. AGP 9's built-in Kotlin is used, so the `kotlin-android` plugin is not applied.
+**Why.** The brief asks for the latest target. These were the current stable versions on 2026-09-30, except AGP: 9.4.0 is out, but the owner's Android Studio supports AGP 9.2.1 at most, and 9.2.1 already supports API 37.
+**Trade-off.** Two AGP minor versions behind. Moving to 9.4 later is a one-line change in `gradle/libs.versions.toml`, once Studio is updated.
 
 ## D-004: Dependencies
 **What.** Only AndroidX, Compose, Kotlin and kotlinx-coroutines, plus JUnit 4 for unit tests (approved by the owner; test-only, never in the APK). Navigation uses string routes.
