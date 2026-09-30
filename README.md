@@ -28,7 +28,15 @@ part in it. It contains no PowerA code or art.
 4. **Run.** Pick your phone in the device menu at the top of Studio and press ▶ (Run
    'app'). The app installs as **Swivel**.
 
-From a terminal instead (Windows: `gradlew.bat` in place of `./gradlew`):
+From a terminal instead. On Windows, PowerShell needs `.\gradlew.bat` in place of
+`./gradlew`, and Gradle needs to find a JDK. Studio's own terminal does not set one up, so
+point `JAVA_HOME` at the JDK bundled with Studio first (this is the default install path):
+
+```
+$env:JAVA_HOME = "C:\Program Files\Android\Android Studio\jbr"
+```
+
+Then:
 
 ```
 ./gradlew testDebugUnitTest   # unit tests, no phone needed
