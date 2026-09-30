@@ -55,6 +55,20 @@ Then:
 row on the home screen. While connected, a notification shows the link and has a
 Disconnect button.
 
+## Old MOGA-enhanced games (the SDK bridge)
+
+Swivel answers the MOGA SDK the way the Pivot app did, so a game built with it gets
+input from a Mode A controller. **Connect the controller in Swivel first**, then start the
+game. It only works for games that target Android 4.4W (API 20) or lower. Android 14 and
+later refuse to install those normally, so from a computer:
+
+```
+adb install --bypass-low-target-sdk-block the-game.apk
+```
+
+Phones from the Pixel 7 onward cannot run 32-bit apps, and most games of that era are 32-bit
+only. docs/RESEARCH.md has the details.
+
 ## Credits
 
 The Mode A protocol notes build on the MIT-licensed

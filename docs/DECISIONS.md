@@ -106,3 +106,13 @@ Each one records What, Why and the Trade-off.
 **What.** On Android 13+, tapping Connect first asks for the notification permission, then connects whatever the answer.
 **Why.** The foreground service runs without it, but its notification (with the Disconnect button) would be hidden. Asking at the moment it matters makes the reason obvious.
 **Trade-off.** One more prompt on first connect.
+
+## D-022: The MOGA SDK bridge is an exported service in Swivel's own package
+**What.** `MogaSdkService` is exported, with the intent filter `com.bda.controller.IControllerService`, and answers the SDK's Binder calls by hand. It relays only while the Mode A link is up, and has no permission guard.
+**Why.** Games using the SDK's implicit intent can bind to any package that declares the action, so no PowerA name is needed for them. A permission guard would lock out the very games it exists for, since they cannot request a Swivel permission.
+**Trade-off.** Any installed app can bind and read controller input while the Mode A link is connected. That is what Pivot allowed, and it is what any app sees from a Mode B gamepad. The service exposes nothing else.
+
+## D-023: No build under PowerA's package name without the owner's say-so
+**What.** Proposed, awaiting the owner. Games patched for Lollipop call `setPackage("com.bda.pivot.mogapgp")` and can only reach an app with that application id. A second build flavour could carry that id, for private sideloading only and never for publishing.
+**Why.** It is the only way those games can work. It would also impersonate PowerA's app, clash with an installed Pivot, and could never go on any store. So the owner decides, per D-002.
+**Trade-off.** Without it, only unpatched old games reach the bridge. With it, there are two Swivel builds to keep straight.

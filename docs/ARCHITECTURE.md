@@ -10,13 +10,15 @@ data/      ControllerRepository ── the only thing ViewModels talk to
   │           ├─ bluetooth/CompanionPairing   CompanionDeviceManager chooser
   │           ├─ input/GamepadInputSource     Mode B: InputDevices + key/motion events
   │           ├─ modea/ModeALink              Mode A: RFCOMM socket, watchdog, reconnection
-  │           └─ modea/ModeAService           foreground service (connectedDevice) holding the link
+  │           ├─ modea/ModeAService           foreground service (connectedDevice) holding the link
+  │           └─ bridge/MogaSdkService        exported service answering the old MOGA SDK, fed by the link
   │
 core/      Plain Kotlin, no android.* imports, all unit-tested on the JVM
               model/   ControllerSnapshot, GamepadButton, ControllerMode, BatteryReading
               detect/  MogaNames, ModeDetector, PairingJudge
               hid/     HidSnapshotReducer (Android key/axis events → snapshot)
               protocol/  Mode A commands, stream parser, report decoder, watchdog, reconnect policy
+              bridge/    the MOGA SDK's Binder constants, event mapping, listener registry
 ```
 
 `CorePurityTest` fails if `core` ever imports Android. The Mode A protocol lives in

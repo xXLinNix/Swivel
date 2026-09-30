@@ -101,13 +101,28 @@ in the background (step 5), giving up after 5 minutes (step 7), and the low-batt
 8. Tap **Disconnect** in the notification: the link should end.
 9. If anything fails, filter Logcat by `Swivel` and send what it shows.
 
-## M3: Mode A bridge spike (goal 3), go/no-go first
+## M3: MOGA SDK bridge (goal 3), **built; no game to test it with yet**
 
-Needs one MOGA-enhanced game APK from the owner. Steps: find its SDK version and how it
-binds (implicit intent, or an explicit package); write down the parcel layouts; and if it
-is viable, implement `com.bda.controller.IControllerService` as a hand-written Binder in
-Swivel's service. See RESEARCH.md for why this may only work for sideloaded old games, or
-only under PowerA's package name.
+**Spike result: go, with a narrow reach.** The details are in RESEARCH.md, "Milestone 3 spike findings". The SDK's contract was recovered from SDK 1.3.0. The bridge works for games that bind with the implicit intent. On a 64-bit-only phone those also have to be pure Java or 64-bit, which few 2013–14 games are.
+
+**Built**
+- `core/bridge`: the SDK's constants, key codes in both styles, getState answers,
+  snapshot differences as key and motion events, and the listener registry with each
+  game's activity state. 12 new tests (64 in all).
+- `MogaSdkService`: an exported service answering `com.bda.controller.IControllerService`.
+  It answers all 14 transactions by hand and sends key, motion and state events to every
+  resumed game as one-way calls, fed by a buffered report stream so quick taps are not
+  lost. Home shows how many games are listening.
+
+**Verified here:** compiles against Android 17, and all 64 tests pass. **Not verified:**
+a real game binding to it. The obvious free test game, Mupen64Plus AE 2.4.4, is 32-bit
+only and cannot install on a Pixel 9 Pro.
+
+**How to use it:** connect the controller in Swivel first, then start the game.
+
+**Open questions for the owner:** see the M3 report. Is there a MOGA game you want to
+play? Should there be a private build under PowerA's package name for games patched with
+`setPackage` (D-023)? Should a self-test probe be added?
 
 ## M4: Installed games list (goal 4)
 

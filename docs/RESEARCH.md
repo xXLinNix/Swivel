@@ -94,7 +94,21 @@ What stands in the way on Android 14 to 17:
 
 Background limits are **not** the obstacle. A bound service runs while the game is bound to it, and the RFCOMM link can live in a `connectedDevice` foreground service. A CompanionDeviceManager association lets that service start from the background.
 
-**Verdict: technically possible for a narrow set of games, unconfirmed for the rest.** Old games that use the implicit intent can bind to any package, so they would work if sideloaded with the adb flag. Later games probably need PowerA's package name. Milestone 3 is therefore a research spike with a go/no-go decision. It needs one MOGA-enhanced game APK the owner owns, to see which SDK it bundles. Most MOGA-enhanced games also accept standard gamepad input, so Mode B already covers them.
+**Verdict (milestone 3 spike, see below): possible, and built, for games whose SDK uses the implicit intent. On a 64-bit-only phone such as the owner's Pixel 9 Pro, that is very few games.**
+
+### Milestone 3 spike findings
+
+Source: MOGA SDK **1.3.0.130130** (January 2013), as bundled in the open-source Mupen64Plus AE repository (`libs/com.bda.controller.jar`). It was read with `javap` for signatures, constants and call order only.
+
+- **How games bind.** `Controller.init()` calls `startService` and then `bindService` with `new Intent("com.bda.controller.IControllerService")`, with no package. That is the same as the SDK inside Pivot 1.23. **Confirmed.**
+- **The Lollipop fix.** When Android 5.0 made implicit service intents throw, developers patched games with `intent.setPackage("com.bda.pivot.mogapgp")` ([write-up](http://jacobkeane.co.uk/moga-controller-support-on-lollipop-in-unity/)). Such a game can only reach an app installed under PowerA's package name. **Confirmed that the fix exists; how widely it was applied is unknown.**
+- **The service contract.** 14 transactions, listed in `core/bridge/MogaSdk.kt`. The game passes its activity state (create 1 … pause 6, service-connected 7) when it registers a listener, and updates it through `sendMessage(1, event)` from `onResume`/`onPause`.
+- **Two generations of client.** SDK 1.3 calls `registerListener2` and `getKeyCode2` with Android's key codes. It falls back to `registerListener`/`getKeyCode` only if the newer call throws. The older calls use legacy codes for X (98) and Y (99).
+- **Event parcels.** BaseEvent is `long time, int controllerId`. KeyEvent adds `int keyCode, int action`. StateEvent adds `int state, int action`. MotionEvent adds two float sparse arrays (count, then key/value pairs): the axes, then the precisions. Listener calls write the interface token, then `1` for "not null", then the event.
+- **Values.** Pivot normalises stick bytes by 127, **negates Y**, divides trigger bytes by 255, and reports a precision of 127 for X and Y. Swivel's decoder already produces exactly these values. **Confirmed from Pivot's bytecode.**
+- **64-bit-only phones.** The Pixel 7 and later cannot run 32-bit code. Most 2013–14 games are 32-bit only: for example, the test candidate Mupen64Plus AE 2.4.4 (`APP_ABI := armeabi armeabi-v7a x86`) will not install on a Pixel 9 Pro. **Confirmed for that game; true of most native games of the era.**
+
+So a game reaches Swivel's bridge on the owner's phone only if all of these hold: (1) it targets API 20 or lower, so its implicit intent still works; (2) it is installed with `adb install --bypass-low-target-sdk-block`; (3) it is pure Java or ships 64-bit libraries; (4) Swivel's Mode A link is connected before the game starts. Condition 4 matters because the SDK's `startService` into an idle app that targets Android 8+ throws. The link's foreground service keeps Swivel active. A game patched with `setPackage` needs Swivel installed under PowerA's package name instead (D-002, D-023).
 
 ## Licensing and trademarks
 
