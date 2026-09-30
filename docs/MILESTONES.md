@@ -23,9 +23,9 @@ starts. Goals are numbered as in the brief: 1 pairing, 2 test screen, 3 Mode A b
 **Verified:** `core` compiles and all 29 tests pass on the JVM. `data` compiles against the
 Android 17 framework classes, and the view models and `…Content` composables against
 Compose. The owner's first Gradle sync (AGP 9.2.1) built the app, which installed and
-opened on a Pixel 9 Pro emulator (API 37.1) showing the home screen. **Not yet verified:**
-the unit tests under AGP, and anything that needs real Bluetooth, which the emulator
-cannot provide.
+opened on a Pixel 9 Pro emulator (API 37.1) showing the home screen. All 29 unit tests also pass under AGP in Android Studio.
+**Not yet verified:** anything that needs real Bluetooth, which the emulator cannot
+provide.
 
 **Hardware test, please report back**
 1. Home with nothing paired: no crash, nothing listed.
