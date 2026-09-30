@@ -4,7 +4,7 @@ The owner tests each milestone on their own phone and controller before the next
 starts. Goals are numbered as in the brief: 1 pairing, 2 test screen, 3 Mode A bridge,
 4 games list, 5 remapping.
 
-## M1: Mode B pairing and test screen (goals 1 and 2, Mode B half), **built, awaiting hardware test**
+## M1: Mode B pairing and test screen (goals 1 and 2, Mode B half), **done as far as the owner's hardware allows**
 
 **Built**
 - A pairing wizard: choose the mode, the Nearby devices permission (including "denied twice,
@@ -30,7 +30,11 @@ provide.
 **Found in hardware testing** (MOGA Pocket, part CPFA000253-01, on a Pixel 9 Pro)
 - The Pocket has no A/B switch and pairs as `BD&A`, as the research predicted (D-016).
 - Fixed: the wizard hung after the PIN in Mode A, because Bluetooth broadcasts never
-  reached the app (D-017).
+  reached the app (D-017). Retested: the Pocket pairs, takes the PIN and ends on
+  "Paired in Mode A".
+- The Mode B path (test screen, wrong-mode detection for a switch on B) is untested on
+  real hardware: the owner has no Mode B controller. Any Bluetooth gamepad would do for
+  the test screen.
 
 **Hardware test, please report back**
 1. Home with nothing paired: no crash, nothing listed.
@@ -49,19 +53,46 @@ provide.
    back by itself?
 8. Deny Nearby devices twice. Does the wizard then offer "Open app settings"?
 
-## M2: Mode A link and test screen (goals 1 and 2, Mode A half)
+## M2: Mode A link and test screen (goals 1 and 2, Mode A half), **built, awaiting hardware test**
 
-- `core/protocol`: frame encoder, a streaming parser that resynchronises on `0x7A` and
-  checksums, and first- and second-generation payload decoding into `ControllerSnapshot`,
-  including the low-battery flag. Tests use byte fixtures from the research.
-- `ModeALink`: an RFCOMM client on the SPP UUID in a `connectedDevice` foreground service
-  with a notification, stream mode (70 or 68) with a keepalive poll every 2 s, and a resend
-  of the stream command if the first is ignored.
-- Reconnect with backoff after the controller sleeps. CompanionDeviceManager presence
-  events restart the service from the background. It disconnects after a set idle time
-  with the screen off, so the controller can sleep and Doze is respected.
-- The wizard's Mode A path confirms with a real handshake. The test screen shows Mode A
-  controllers. A small Settings screen covers auto-reconnect and the player LED.
+**Built**
+- `core/protocol`: the command encoder, a stream parser that resynchronises on `0x7A`
+  and checksums, first- and second-generation decoding into `ControllerSnapshot` with the
+  low-battery flag, the link watchdog, and the reconnect policy. 22 new tests (51 in all).
+- `ModeALink`: an RFCOMM client on the SPP UUID, secure socket first and insecure second.
+  It sets the player light, then polls and streams. The watchdog resends if the first
+  command is ignored, tries the other report format if the name guessed wrong, polls
+  after 2 s of quiet, and calls the link dead after 6 s.
+- Reconnection: after a drop it retries at 2, 4, 8, 16 then every 30 s, for 5 minutes. If
+  the controller reconnects to the phone by itself (Bluetooth ACL) while it waits, it
+  retries at once (D-018).
+- `ModeAService`: a `connectedDevice` foreground service with a notification that shows
+  the link state and a Disconnect button. It stops itself when the link stops.
+- UI: Connect / Test / Disconnect for Mode A controllers on Home, "Connect and test" at
+  the end of Mode A pairing, and the test screen for Mode A. The test screen shows sticks,
+  buttons, raw axes, the last report in hex, button events, and the low-battery flag.
+- The "slide the switch to B" advice is gone for first-generation controllers.
+
+**Verified here:** everything but the Android-only glue compiles against Android 17 and
+Compose, and all 51 tests pass. **Not verified:** anything on the phone.
+
+**Hardware test with the MOGA Pocket, please report back**
+1. Home → the BD&A row → **Connect**. Allow notifications if asked. Does the test screen
+   reach the controls within a few seconds? A notification should say it is connected.
+2. Press every button: A, B, X, Y, L1, R1, Start, Select. Does each light the right lamp?
+   If one lights the wrong lamp, note which.
+3. Sticks: push each fully **up**, then **right**. Up should read about -1 on Y, right
+   about +1 on X. Please send a screenshot of "Raw axes" and "Last report" with the left
+   stick pushed up; that settles the Y direction (D-019).
+4. Battery: the line should say "Battery: OK". If you have a nearly flat set of batteries,
+   does it change to "low"?
+5. Press Home on the phone and wait a minute. Is it still connected when you come back?
+6. Turn the controller **off** while connected. The screen should say "Connection lost.
+   Trying again…". Turn it back **on**: does it reconnect by itself, and how fast?
+7. Leave it off for more than 5 minutes: it should give up, and the notification should
+   disappear.
+8. Tap **Disconnect** in the notification: the link should end.
+9. If anything fails, filter Logcat by `Swivel` and send what it shows.
 
 ## M3: Mode A bridge spike (goal 3), go/no-go first
 

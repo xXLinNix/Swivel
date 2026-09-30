@@ -50,7 +50,10 @@ Then:
    **Find my controller**, then pick it from Android's list.
 3. When it says **Ready**, tap **Test every button**.
 
-Mode A (the switch on A) can be paired and recognised, but not yet used; that is milestone 2.
+**Mode A** (the switch on A, or a MOGA Pocket, which only has Mode A): pair with
+**Pair in Mode A**, then tap **Connect and test**. Later, connect from the controller's
+row on the home screen. While connected, a notification shows the link and has a
+Disconnect button.
 
 ## Credits
 

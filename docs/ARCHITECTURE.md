@@ -9,17 +9,18 @@ data/      ControllerRepository ── the only thing ViewModels talk to
   │           ├─ bluetooth/BluetoothGateway   adapter, bonds, SDP, discovery, broadcasts
   │           ├─ bluetooth/CompanionPairing   CompanionDeviceManager chooser
   │           ├─ input/GamepadInputSource     Mode B: InputDevices + key/motion events
-  │           └─ (M2) modea/ModeALink         Mode A: RFCOMM socket in a foreground service
+  │           ├─ modea/ModeALink              Mode A: RFCOMM socket, watchdog, reconnection
+  │           └─ modea/ModeAService           foreground service (connectedDevice) holding the link
   │
 core/      Plain Kotlin, no android.* imports, all unit-tested on the JVM
               model/   ControllerSnapshot, GamepadButton, ControllerMode, BatteryReading
               detect/  MogaNames, ModeDetector, PairingJudge
               hid/     HidSnapshotReducer (Android key/axis events → snapshot)
-              (M2) protocol/  Mode A frame codec and stream parser
+              protocol/  Mode A commands, stream parser, report decoder, watchdog, reconnect policy
 ```
 
-`CorePurityTest` fails if `core` ever imports Android. The Mode A protocol goes into
-`core/protocol` in milestone 2, so it can be tested byte by byte without a controller.
+`CorePurityTest` fails if `core` ever imports Android. The Mode A protocol lives in
+`core/protocol`, so it is tested byte by byte without a controller.
 
 Both modes produce the same `ControllerSnapshot`, so the test screen (and later the
 remapper) never needs to know which mode a controller is in.
@@ -58,9 +59,9 @@ Verifying settles as soon as it has strong evidence (see `PairingJudge`):
 - **Mode A wanted:** any gamepad or HID service → WrongMode(B). SPP only → PairedModeA.
   In milestone 2, a successful Mode A handshake becomes the confirmation.
 
-Later milestones add: a Games tab (M4), a Mode A connection card with a foreground-service
-notification (M2), the bridge if it passes its spike (M3), per-game remapping (M5), and a
-Settings screen for auto-reconnect and the controller id or player LED (M2).
+Later milestones add: a Games tab (M4), the bridge if it passes its spike (M3), per-game
+remapping (M5), and a Settings screen (auto-reconnect window, player light) once there is
+more than one setting worth changing.
 
 ## Bluetooth and permission choices
 
@@ -73,4 +74,4 @@ Settings screen for auto-reconnect and the controller id or player LED (M2).
 | Mode B input | Activity `dispatchKeyEvent` / `dispatchGenericMotionEvent`, joystick axes from `InputDevice.motionRanges` | [Handle controller actions](https://developer.android.com/develop/ui/views/touch-and-input/game-controllers/controller-input) |
 | Mode A link (M2) | RFCOMM client socket on the SPP UUID, `cancelDiscovery()` before `connect()`, blocking I/O on its own thread | [Connect Bluetooth devices](https://developer.android.com/develop/connectivity/bluetooth/connect-bluetooth-devices) |
 | Keeping Mode A alive (M2) | Foreground service with `foregroundServiceType="connectedDevice"` and `FOREGROUND_SERVICE_CONNECTED_DEVICE`; prerequisite met by holding `BLUETOOTH_CONNECT` | [Foreground service types](https://developer.android.com/develop/background-work/services/fgs/service-types) |
-| Restarting after the controller sleeps (M2) | `REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND` plus device-presence observing (`ObservingDevicePresenceRequest` on Android 16+) | [Background start restrictions](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start) |
+| Restarting with the app closed (later, D-018) | `REQUEST_COMPANION_START_FOREGROUND_SERVICES_FROM_BACKGROUND` plus device-presence observing (`ObservingDevicePresenceRequest` on Android 16+) | [Background start restrictions](https://developer.android.com/develop/background-work/services/fgs/restrictions-bg-start) |

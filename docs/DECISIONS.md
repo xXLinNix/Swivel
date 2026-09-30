@@ -78,7 +78,7 @@ Each one records What, Why and the Trade-off.
 **Trade-off.** The alternatives: (a) remap only for Mode A games reached through the M3 bridge, where Swivel produces the events itself; (b) buttons to screen taps through an accessibility service (key events only, no sticks); (c) drop goal 5. My recommendation is (a) if M3 is a go, otherwise (c).
 
 ## D-016: The owner's controller only speaks Mode A, so Mode A comes next
-**What.** Proposed, awaiting the owner. The owner's controller is part CPFA000253-01, the original 2012 "MOGA Mobile Gaming System", later sold as the MOGA Pocket. As far as I know it has no A/B switch and no HID mode, and advertises a `BD&A` name. If the owner confirms that, milestone 2 (Mode A) becomes the first milestone the owner can use. Milestone 1's hardware test shrinks to pairing it in Mode A and checking that Swivel recognises it as Mode A.
+**What.** Confirmed by the owner: no A/B switch, pairs as `BD&A`. The owner's controller is part CPFA000253-01, the original 2012 "MOGA Mobile Gaming System", later sold as the MOGA Pocket. As far as I know it has no A/B switch and no HID mode, and advertises a `BD&A` name. If the owner confirms that, milestone 2 (Mode A) becomes the first milestone the owner can use. Milestone 1's hardware test shrinks to pairing it in Mode A and checking that Swivel recognises it as Mode A.
 **Why.** Mode B screens cannot be tested with a controller that has no Mode B. The Pocket also lacks a D-pad, L2/R2 and L3/R3, and uses the first-generation 12-byte reports (commands 65 and 68).
 **Trade-off.** The Mode B path stays unproven on real hardware until someone tries it with a MOGA Pro-family controller or any other Bluetooth gamepad. Any gamepad will do for the test screen.
 
@@ -86,3 +86,23 @@ Each one records What, Why and the Trade-off.
 **What.** `BluetoothGateway.events()` registers its receiver with plain `registerReceiver(receiver, filter)`, with no `RECEIVER_EXPORTED` or `RECEIVER_NOT_EXPORTED`. While the wizard is bonding, it also checks the bond state every second, for up to 60 seconds.
 **Why.** In the first hardware test the wizard spun forever after the PIN. The receiver was registered `RECEIVER_NOT_EXPORTED`, and Bluetooth broadcasts come from the Bluetooth process rather than the system server, so they never arrived. Android asks apps to register receivers of system broadcasts only with no flag (developer.android.com/about/versions/14/behavior-changes-14). Polling means a lost broadcast can only slow the wizard down, never hang it.
 **Trade-off.** None for security: all seven actions are protected broadcasts that only the system can send. The poll costs one bond-state read a second, and only while bonding.
+
+## D-018: How the Mode A link survives sleep, Doze and app switching
+**What.** The link runs in a `connectedDevice` foreground service that starts only from a visible screen. It retries after a drop with growing delays (2, 4, 8, 16, then 30 s) for 5 minutes, then gives up and stops the service. It retries at once when the controller reconnects at the Bluetooth level. The service is `START_NOT_STICKY`, and there is no CompanionDeviceManager presence wake-up yet.
+**Why.** The service keeps the process alive and is exempt from App Standby, and Doze does not suspend Bluetooth sockets. The phone cannot wake a sleeping controller, so paging it forever only drains both batteries. Five minutes covers "I put it down to answer a message".
+**Trade-off.** After 5 minutes asleep the user taps Connect again. The next step, if hardware testing shows the Pocket reconnects to the phone by itself when switched on, is a CompanionDeviceManager presence observer (`ObservingDevicePresenceRequest` on Android 16+) to restart the link with the app closed.
+
+## D-019: Mode A stick Y is flipped, pending hardware
+**What.** The decoder negates both stick Y bytes, so up reads -1 as on Android.
+**Why.** moga-uinput flips Y for Linux, which shares Android's convention. It is the only source.
+**Trade-off.** If the Pocket turns out to report up as negative already, this is a one-line change in `ModeADecoder` plus its test. The test screen shows the raw report so the owner can settle it.
+
+## D-020: The report format is guessed from the name, then checked
+**What.** A `BD&A` name starts with the first-generation commands (65/68), anything else with the second (69/70). If nothing answers within 2.5 s, the link tries the other format. If nothing answers either way within 6 s, twice in a row, it stops with "never answered in Mode A".
+**Why.** The name is right for every controller the research covers, and the fallback covers renamed or unknown models.
+**Trade-off.** A wrong guess costs 2.5 s on the first connect.
+
+## D-021: Notifications are asked for at the first Mode A connect
+**What.** On Android 13+, tapping Connect first asks for the notification permission, then connects whatever the answer.
+**Why.** The foreground service runs without it, but its notification (with the Disconnect button) would be hidden. Asking at the moment it matters makes the reason obvious.
+**Trade-off.** One more prompt on first connect.
