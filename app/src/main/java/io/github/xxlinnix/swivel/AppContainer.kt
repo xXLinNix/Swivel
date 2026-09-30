@@ -4,6 +4,7 @@ import android.content.Context
 import io.github.xxlinnix.swivel.data.ControllerRepository
 import io.github.xxlinnix.swivel.data.bluetooth.BluetoothGateway
 import io.github.xxlinnix.swivel.data.bluetooth.CompanionPairing
+import io.github.xxlinnix.swivel.data.games.InstalledGames
 import io.github.xxlinnix.swivel.data.input.GamepadInputSource
 import io.github.xxlinnix.swivel.data.modea.ModeALink
 import io.github.xxlinnix.swivel.data.virtualpad.ShizukuGate
@@ -30,5 +31,7 @@ class AppContainer(context: Context) {
     val shizuku = ShizukuGate(context)
     val virtualPad = VirtualPad(context, appScope, shizuku, modeALink)
 
-    val repository = ControllerRepository(context, bluetooth, CompanionPairing(context), input, modeALink, bridgeGames, shizuku, virtualPad)
+    val repository = ControllerRepository(
+        context, bluetooth, CompanionPairing(context), input, modeALink, bridgeGames, shizuku, virtualPad, InstalledGames(context),
+    )
 }

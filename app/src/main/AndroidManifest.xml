@@ -29,9 +29,18 @@
     <!-- Android 13+: lets the service's notification, with its Disconnect button, be shown. -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- To tell whether Shizuku is installed and open it (package visibility, Android 11+). -->
+    <!--
+        Package visibility (Android 11+), without QUERY_ALL_PACKAGES: Shizuku, to tell
+        whether it is installed and open it; and every app with a launcher icon, for the
+        games list, the visibility any launcher gets.
+        developer.android.com/training/package-visibility/declaring
+    -->
     <queries>
         <package android:name="moe.shizuku.privileged.api" />
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.LAUNCHER" />
+        </intent>
     </queries>
 
     <uses-feature

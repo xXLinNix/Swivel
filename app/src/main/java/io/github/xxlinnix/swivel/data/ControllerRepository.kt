@@ -1,6 +1,9 @@
 package io.github.xxlinnix.swivel.data
 
 import android.content.Context
+import android.graphics.Bitmap
+import io.github.xxlinnix.swivel.core.games.InstalledGame
+import io.github.xxlinnix.swivel.data.games.InstalledGames
 import android.content.Intent
 import io.github.xxlinnix.swivel.core.detect.ModeDetector
 import io.github.xxlinnix.swivel.core.detect.ModeEvidence
@@ -40,6 +43,7 @@ class ControllerRepository(
     bridgeGames: StateFlow<Int>,
     private val shizuku: ShizukuGate,
     private val virtualPad: VirtualPad,
+    private val installedGames: InstalledGames,
 ) {
     private val context = context.applicationContext
 
@@ -90,6 +94,11 @@ class ControllerRepository(
     fun setVirtualPadEnabled(enabled: Boolean) = virtualPad.setEnabled(enabled)
     fun requestShizukuPermission() = shizuku.requestPermission()
     fun refreshShizuku() = shizuku.refresh()
+
+    suspend fun installedGames(): List<InstalledGame> = installedGames.load()
+    suspend fun gameIcon(packageName: String, sizePx: Int): Bitmap? = installedGames.icon(packageName, sizePx)
+    fun launchGame(packageName: String): Boolean = installedGames.launch(packageName)
+    val ownPackage: String get() = context.packageName
 
     /** Starts the Mode A link in its foreground service. Call from a visible screen only. */
     fun connectModeA(address: String) = ModeAService.connect(context, address)

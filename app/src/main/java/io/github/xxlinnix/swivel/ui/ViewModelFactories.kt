@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import io.github.xxlinnix.swivel.SwivelApp
 import io.github.xxlinnix.swivel.data.ControllerRepository
+import io.github.xxlinnix.swivel.ui.games.GamesViewModel
 import io.github.xxlinnix.swivel.ui.home.HomeViewModel
 import io.github.xxlinnix.swivel.ui.pairing.PairingViewModel
 import io.github.xxlinnix.swivel.ui.test.ControllerTestViewModel
@@ -34,6 +35,10 @@ object ViewModelFactories {
             val address = checkNotNull(createSavedStateHandle().get<String>(MODE_A_ADDRESS_ARG))
             ModeATestViewModel(address, repository())
         }
+    }
+
+    val games = viewModelFactory {
+        initializer { GamesViewModel(repository()) }
     }
 
     private fun CreationExtras.repository(): ControllerRepository =

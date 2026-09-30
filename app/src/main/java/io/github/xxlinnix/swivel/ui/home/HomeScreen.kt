@@ -18,6 +18,7 @@ fun HomeScreen(
     onPair: () -> Unit,
     onTest: (descriptor: String) -> Unit,
     onTestModeA: (address: String) -> Unit,
+    onGames: () -> Unit,
     viewModel: HomeViewModel = viewModel(factory = ViewModelFactories.home),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -34,6 +35,7 @@ fun HomeScreen(
         onConnectModeA = connect,
         onDisconnectModeA = viewModel::disconnectModeA,
         onTestModeA = onTestModeA,
+        onGames = onGames,
         padActions = VirtualPadActions(
             onEnabled = viewModel::setVirtualPadEnabled,
             onGetShizuku = {

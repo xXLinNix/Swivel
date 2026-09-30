@@ -42,6 +42,7 @@ fun HomeContent(
     onConnectModeA: (address: String) -> Unit,
     onDisconnectModeA: () -> Unit,
     onTestModeA: (address: String) -> Unit,
+    onGames: () -> Unit = {},
     padActions: VirtualPadActions = VirtualPadActions(),
 ) {
     Scaffold(topBar = { TopAppBar(title = { Text("Swivel") }) }) { padding ->
@@ -93,9 +94,12 @@ fun HomeContent(
                     }
                 }
             }
+            item {
+                Button(onClick = onGames, modifier = Modifier.fillMaxWidth()) { Text("Games") }
+            }
             item { VirtualPadSection(state, padActions) }
             item {
-                Button(onClick = onPair, modifier = Modifier.fillMaxWidth()) { Text("Pair a controller") }
+                OutlinedButton(onClick = onPair, modifier = Modifier.fillMaxWidth()) { Text("Pair a controller") }
             }
             item {
                 Hint("Swivel is an independent app. MOGA is a trademark of PowerA, which has no part in it.")

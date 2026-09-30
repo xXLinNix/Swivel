@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import io.github.xxlinnix.swivel.ui.games.GamesScreen
 import io.github.xxlinnix.swivel.ui.home.HomeScreen
 import io.github.xxlinnix.swivel.ui.pairing.PairingScreen
 import io.github.xxlinnix.swivel.ui.test.ControllerTestScreen
@@ -18,6 +19,7 @@ const val MODE_A_ADDRESS_ARG = "address"
 private object Routes {
     const val HOME = "home"
     const val PAIR = "pair"
+    const val GAMES = "games"
     const val TEST = "test/{$TEST_DESCRIPTOR_ARG}"
     const val MODE_A_TEST = "modea/{$MODE_A_ADDRESS_ARG}"
 
@@ -34,7 +36,11 @@ fun SwivelNavHost() {
                 onPair = { nav.navigate(Routes.PAIR) },
                 onTest = { descriptor -> nav.navigate(Routes.test(descriptor)) },
                 onTestModeA = { address -> nav.navigate(Routes.modeATest(address)) },
+                onGames = { nav.navigate(Routes.GAMES) },
             )
+        }
+        composable(Routes.GAMES) {
+            GamesScreen(onBack = { nav.popBackStack() })
         }
         composable(Routes.PAIR) {
             PairingScreen(
