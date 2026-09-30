@@ -168,7 +168,7 @@ and Android's own navigation both respond to the Pocket as a gamepad.
 6. If it fails, send the section's error text and Logcat filtered by `Swivel` (the pad's
    own process logs as `SwivelPad`).
 
-## M5: Installed games list (goal 4), **built, awaiting hardware test**
+## M5: Installed games list (goal 4), **done**
 
 Reshaped by the pivot: it now lists the games the owner can play with the controller,
 not only old MOGA-SDK games (D-027).
@@ -186,7 +186,9 @@ not only old MOGA-SDK games (D-027).
 
 **Verified here:** compiles against Android 17, and all 77 tests pass. **Not verified:** on the phone.
 
-**Hardware test, please report back**
+**Hardware test:** the owner tried it on the Pixel 9 Pro and reported it "looks good".
+
+**The checklist used**
 1. Home → **Games**. Do your controller games appear under "Controller support"? Which
    ones are missing there but appear under "All games"?
 2. With the Pocket off, the Controller line should say none is connected and offer
