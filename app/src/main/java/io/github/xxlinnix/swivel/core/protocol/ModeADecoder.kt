@@ -23,8 +23,8 @@ data class ModeAReport(
  * the analog triggers on second-generation controllers. The byte before the checksum is
  * power: bit 0 set means the battery is low.
  *
- * Stick Y is inverted to Android's convention (up is -1), following moga-uinput. This
- * still has to be confirmed on hardware; the test screen shows the raw bytes to check.
+ * Stick Y is inverted to Android's convention (up is -1), following moga-uinput, and
+ * confirmed on the owner's MOGA Pocket.
  */
 object ModeADecoder {
     private val buttonBits = listOf(
@@ -51,8 +51,8 @@ object ModeADecoder {
             leftTrigger = if (GamepadButton.L2 in pressed) 1f else 0f
             rightTrigger = if (GamepadButton.R2 in pressed) 1f else 0f
         }
-        val left = Stick(signed(b[6]), -signed(b[7]))
-        val right = Stick(signed(b[8]), -signed(b[9]))
+        val left = Stick(signed(b[6]), flipped(b[7]))
+        val right = Stick(signed(b[8]), flipped(b[9]))
         val power = unsigned(b[b.size - 2])
 
         val snapshot = ControllerSnapshot(
@@ -79,6 +79,9 @@ object ModeADecoder {
     }
 
     private fun unsigned(byte: Byte): Int = byte.toInt() and 0xFF
+
+    /** Y points up on the controller and down on Android. Adding 0 turns -0.0 into 0.0. */
+    private fun flipped(byte: Byte): Float = -signed(byte) + 0f
 
     /** -128..127 to -1..1. Pivot normalised by 127 as well. */
     private fun signed(byte: Byte): Float = (byte.toInt() / 127f).coerceIn(-1f, 1f)

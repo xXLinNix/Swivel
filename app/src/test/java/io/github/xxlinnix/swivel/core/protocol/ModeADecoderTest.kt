@@ -41,7 +41,14 @@ class ModeADecoderTest {
         assertEquals(Stick(1f, -1f), report.snapshot.leftStick)
         assertEquals(-127 / 127f, report.snapshot.rightStick.x)
         assertEquals(1f, report.snapshot.rightStick.y) // -128 clamps to -1, then flips
-        assertEquals(Stick(0f, -0f), decode(firstGen()).snapshot.leftStick)
+    }
+
+    @Test
+    fun aCentredStickReadsPlusZeroNotMinusZero() {
+        // Regression: flipping Y turned 0 into -0.0, which the test screen showed as "-0.000".
+        val report = decode(firstGen())
+        assertEquals(Stick(0f, 0f), report.snapshot.leftStick)
+        assertEquals(Stick(0f, 0f), report.snapshot.rightStick)
     }
 
     @Test
