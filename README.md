@@ -55,6 +55,23 @@ Then:
 row on the home screen. While connected, a notification shows the link and has a
 Disconnect button.
 
+## Playing Play Store games with a Mode A controller
+
+Android lets no ordinary app create a gamepad, so Swivel uses **Shizuku** to show your
+Mode A controller (such as a MOGA Pocket) to Android as a standard Xbox 360-style
+gamepad. Every game that supports controllers can then use it.
+
+1. Install **Shizuku** from the Play Store and open it.
+2. Choose **Start via Wireless debugging** and follow its steps. It pairs once using a code
+   from Settings → Developer options → Wireless debugging → Pair device with pairing code.
+   Android stops Shizuku whenever the phone restarts, so start it again after a reboot.
+3. In Swivel: Home → **Play Store games** → **Allow Swivel in Shizuku**.
+4. Connect your controller. It now appears to games as a gamepad, and disappears when it
+   disconnects. "Share as a gamepad" on the home screen switches this off.
+
+While Shizuku runs, Swivel's small helper process has the same privileges as `adb shell`.
+It uses them only to create that one gamepad (docs/DECISIONS.md, D-026).
+
 ## Old MOGA-enhanced games (the SDK bridge)
 
 Swivel answers the MOGA SDK the way the Pivot app did, so a game built with it gets
@@ -71,6 +88,8 @@ only. docs/RESEARCH.md has the details.
 
 ## Credits
 
-The Mode A protocol notes build on the MIT-licensed
+The virtual gamepad's HID layout follows [scrcpy](https://github.com/Genymobile/scrcpy)
+(Apache-2.0). Shizuku support uses the [Shizuku API](https://github.com/RikkaApps/Shizuku-API)
+(MIT). The Mode A protocol notes build on the MIT-licensed
 [MogaSerial](https://github.com/Zel-os/MogaSerial) by Jake Montgomery and
 [moga-uinput](https://github.com/jakobend/moga-uinput) by Jakob Endrikat.

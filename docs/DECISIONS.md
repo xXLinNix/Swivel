@@ -18,7 +18,7 @@ Each one records What, Why and the Trade-off.
 **Trade-off.** Two AGP minor versions behind. Moving to 9.4 later is a one-line change in `gradle/libs.versions.toml`, once Studio is updated.
 
 ## D-004: Dependencies
-**What.** Only AndroidX, Compose, Kotlin and kotlinx-coroutines, plus JUnit 4 for unit tests (approved by the owner; test-only, never in the APK). Navigation uses string routes.
+**What.** Only AndroidX, Compose, Kotlin and kotlinx-coroutines, plus two the owner approved: JUnit 4 for unit tests (never in the APK), and the Shizuku API 13.1.5 (MIT) for the virtual gamepad (D-024). Navigation uses string routes.
 **Why.** This is the owner's rule. Type-safe navigation routes would need kotlinx-serialization, which is another dependency to ask about.
 **Trade-off.** Route strings are checked at runtime, not compile time. With three routes this is fine.
 
@@ -116,3 +116,18 @@ Each one records What, Why and the Trade-off.
 **What.** Proposed, awaiting the owner. Games patched for Lollipop call `setPackage("com.bda.pivot.mogapgp")` and can only reach an app with that application id. A second build flavour could carry that id, for private sideloading only and never for publishing.
 **Why.** It is the only way those games can work. It would also impersonate PowerA's app, clash with an installed Pivot, and could never go on any store. So the owner decides, per D-002.
 **Trade-off.** Without it, only unpatched old games reach the bridge. With it, there are two Swivel builds to keep straight.
+
+## D-024: The Pocket becomes a system gamepad through Shizuku, replacing the old plan
+**What.** Approved by the owner. The next milestone makes the Mode A controller appear to Android as a standard gamepad, so Play Store games can use it. The installed-games list moves to M5, and remapping to M6. Swivel depends on the Shizuku API (`dev.rikka.shizuku:api` and `provider` 13.1.5, MIT).
+**Why.** The owner has no MOGA-SDK game, and the Pocket has no Mode B. Android lets no ordinary app create or fake an input device. Shizuku, started by the user through Wireless debugging, runs approved code as the shell user, which may open `/dev/uhid`, as scrcpy's `--gamepad=uhid` does on unrooted phones. The alternatives were an accessibility service (touch-mapping only, no analog) or root.
+**Trade-off.** The user installs Shizuku and restarts it through Wireless debugging after every reboot. It also revises D-015: remapping becomes possible for the Pocket, because Swivel writes the reports itself.
+
+## D-025: The virtual gamepad presents as an Xbox 360 controller
+**What.** The virtual gamepad uses vendor 0x045E, product 0x028E (the Xbox 360 controller) and scrcpy's descriptor: sticks on X/Y and Rx/Ry, triggers on Z/Rz, Linux gamepad button order, and a hat switch. It sits on the virtual bus.
+**Why.** Android ships a key layout for exactly this controller, which maps those usages to its standard gamepad axes and buttons. Games' controller databases (SDL, Unity and others) recognise it. scrcpy uses the same pairing successfully. A neutral id would fall back to Android's generic mapping, which puts the right stick and triggers on different axes.
+**Trade-off.** Games show Xbox button names and treat Select as Back (Android's layout for this controller does). The device borrows Microsoft's ids, as many controller adapters do. It is only visible on the owner's phone.
+
+## D-026: The owner approved shell-level access for the virtual gamepad
+**What.** Approved by the owner after the session's safety check first blocked it. `VirtualPadUserService` runs under Shizuku as the shell user (the privilege `adb shell` has). It does one thing: open `/dev/uhid`, create one gamepad, and write reports to it. It is not exported to other apps: only Swivel holds its Binder, which Shizuku hands over.
+**Why.** It is the only no-root way to make the Pocket a real gamepad (D-024).
+**Trade-off.** While Shizuku runs, Swivel's helper process has more power than a normal app. The helper's code is kept to that one job so it can be reviewed at a glance. Keep it that way: anything else that needs shell privileges gets its own decision.

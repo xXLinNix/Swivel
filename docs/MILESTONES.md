@@ -101,7 +101,7 @@ in the background (step 5), giving up after 5 minutes (step 7), and the low-batt
 8. Tap **Disconnect** in the notification: the link should end.
 9. If anything fails, filter Logcat by `Swivel` and send what it shows.
 
-## M3: MOGA SDK bridge (goal 3), **built; no game to test it with yet**
+## M3: MOGA SDK bridge (goal 3), **built; closed without a game to test it with**
 
 **Spike result: go, with a narrow reach.** The details are in RESEARCH.md, "Milestone 3 spike findings". The SDK's contract was recovered from SDK 1.3.0. The bridge works for games that bind with the implicit intent. On a 64-bit-only phone those also have to be pure Java or 64-bit, which few 2013–14 games are.
 
@@ -120,11 +120,51 @@ only and cannot install on a Pixel 9 Pro.
 
 **How to use it:** connect the controller in Swivel first, then start the game.
 
-**Open questions for the owner:** see the M3 report. Is there a MOGA game you want to
-play? Should there be a private build under PowerA's package name for games patched with
-`setPackage` (D-023)? Should a self-test probe be added?
+**Closed.** The owner has no MOGA game to play, and no current game uses the SDK, so the
+bridge stays in place, untested. The private build under PowerA's name (D-023) and a
+self-test were declined. The goal that matters, playing Play Store games with the Pocket,
+became M4 (D-024).
 
-## M4: Installed games list (goal 4)
+## M4: The Pocket as a gamepad for Play Store games, **built, awaiting hardware test**
+
+Replaces the old plan's M4 and M5 order (D-024). Android lets no ordinary app create an
+input device, so this uses Shizuku, which the owner approved, together with its
+shell-level access (D-026).
+
+**Built**
+- `core/virtualpad`: the HID descriptor and 15-byte report (scrcpy's gamepad layout under
+  the Xbox 360 controller's ids, D-025), the D-pad as a hat switch, and the `/dev/uhid`
+  message layout. 9 new tests (73 in all).
+- `VirtualPadUserService`: runs in a process Shizuku starts as the shell user. It opens
+  `/dev/uhid`, creates the gamepad, writes reports, and removes it on close.
+- `VirtualPad`: while the "Share as a gamepad" switch is on, Shizuku is ready and the
+  Mode A link is connected, it keeps the gamepad open and forwards every report. It
+  removes the gamepad when the link drops, so games see a disconnect.
+- Home: a "Play Store games" section that walks through installing, starting and allowing
+  Shizuku, with the switch and the pad's state.
+- The Mode A test screen now swallows controller input too, since the virtual gamepad's
+  B and Select would otherwise act as Back.
+
+**Verified here:** compiles against Android 17 and the Shizuku API; all 73 tests pass.
+**Not verified:** anything on the phone, including the key assumption that Shizuku's
+shell process may open `/dev/uhid` on a Pixel 9 Pro. scrcpy doing exactly that on
+unrooted phones is the evidence for it.
+
+**Hardware test, please report back**
+1. Install **Shizuku** from the Play Store. Open it, choose **Start via Wireless
+   debugging** and follow its pairing steps (Developer options → Wireless debugging →
+   Pair device with pairing code).
+2. In Swivel, Home → Play Store games → **Allow Swivel in Shizuku**.
+3. Connect the Pocket. The section should say games now see it as a standard gamepad,
+   and **Connected controllers** should list "Swivel virtual gamepad". Tap **Test** there:
+   every button and both sticks should behave on the Mode B test screen, since that is
+   exactly what games receive.
+4. Try a Play Store game that supports controllers. Does it respond? Name the game.
+5. Turn the Pocket off, then on again. The gamepad should disappear and come back.
+6. If it fails, send the section's error text and Logcat filtered by `Swivel` (the pad's
+   own process logs as `SwivelPad`).
+
+## M5: Installed games list (goal 4)
 
 A curated list of MOGA-enhanced package names. The Pivot APK's bundled icons name 23 of
 them, a start. Visibility comes from one `<queries><package/></queries>` entry per game,
@@ -132,7 +172,8 @@ with no `QUERY_ALL_PACKAGES`, and games launch through `getLaunchIntentForPackag
 Detecting unlisted games by scanning APKs for the SDK would need a broad `<queries>` on the
 launcher intent: to be discussed.
 
-## M5: Remapping (goal 5), needs a decision first
+## M6: Remapping (goal 5)
 
-As written, per-game Mode B remapping is not possible for an ordinary app. See the M1
-report and DECISIONS.md D-015.
+Now possible for the Pocket: Swivel writes the virtual gamepad's reports itself, so it can
+remap buttons before they reach any game (D-015, as revised by D-024). Remapping a real
+Mode B controller is still impossible.

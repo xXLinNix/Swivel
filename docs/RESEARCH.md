@@ -110,6 +110,14 @@ Source: MOGA SDK **1.3.0.130130** (January 2013), as bundled in the open-source 
 
 So a game reaches Swivel's bridge on the owner's phone only if all of these hold: (1) it targets API 20 or lower, so its implicit intent still works; (2) it is installed with `adb install --bypass-low-target-sdk-block`; (3) it is pure Java or ships 64-bit libraries; (4) Swivel's Mode A link is connected before the game starts. Condition 4 matters because the SDK's `startService` into an idle app that targets Android 8+ throws. The link's foreground service keeps Swivel active. A game patched with `setPackage` needs Swivel installed under PowerA's package name instead (D-002, D-023).
 
+## A system gamepad without root (milestone 4)
+
+- **The restriction.** No public API lets an app create an input device or inject input into other apps. Accessibility services can send touch gestures but not gamepad events.
+- **`/dev/uhid`.** This is the kernel's user-space HID interface. Android's own `hid` shell command and its compatibility tests use it to create virtual gamepads, and Android's input stack treats them like real devices. The shell user (`adb shell`) may open it on unrooted phones.
+- **Proven in practice.** scrcpy's `--gamepad=uhid` mode (Apache-2.0) runs its server as the shell user, opens `/dev/uhid` with `Os.open`, and writes `UHID_CREATE2` (a 280-byte header plus the descriptor) and `UHID_INPUT2` messages from Java. It presents as an Xbox 360 controller. **Confirmed from scrcpy's source.**
+- **Shizuku.** Shizuku gives an approved app that same shell privilege: the user starts its server once per boot through Wireless debugging, and it can run an app's "user service" class in a shell-user process (`Shizuku.bindUserService`). **Confirmed from the Shizuku API (MIT).**
+- **Unverified until tested:** that a Pixel 9 Pro on Android 17 lets that process open `/dev/uhid`, and how particular games react to a virtual-bus Xbox 360 controller.
+
 ## Licensing and trademarks
 
 I am not a lawyer; this is the engineering view.
@@ -118,4 +126,6 @@ I am not a lawyer; this is the engineering view.
 - **A Binder interface needs only matching strings and parcel layouts.** Implementing `com.bda.controller.IControllerService` in milestone 3 needs the descriptor string and the byte order of each parcel, not PowerA's classes.
 - **MogaSerial and moga-uinput are MIT.** Swivel's codec will be written from the protocol facts, not translated from their code. They are credited in the README anyway.
 - **sensboston/MOGA has no licence.** Read only to confirm facts.
+- **scrcpy is Apache-2.0.** Swivel's gamepad descriptor follows its layout, credited in `XboxPadReport` and the README.
+- **Shizuku API is MIT.** Used as a library, with the owner's approval.
 - **Trademarks.** "MOGA" and "Pivot" belong to PowerA. The app is called Swivel. It mentions MOGA only to say what it works with, and it uses its own package name (D-002).
