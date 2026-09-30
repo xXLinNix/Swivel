@@ -92,8 +92,8 @@ Each one records What, Why and the Trade-off.
 **Why.** The service keeps the process alive and is exempt from App Standby, and Doze does not suspend Bluetooth sockets. The phone cannot wake a sleeping controller, so paging it forever only drains both batteries. Five minutes covers "I put it down to answer a message".
 **Trade-off.** After 5 minutes asleep the user taps Connect again. The next step, if hardware testing shows the Pocket reconnects to the phone by itself when switched on, is a CompanionDeviceManager presence observer (`ObservingDevicePresenceRequest` on Android 16+) to restart the link with the app closed.
 
-## D-019: Mode A stick Y is flipped, pending hardware
-**What.** The decoder negates both stick Y bytes, so up reads -1 as on Android.
+## D-019: Mode A stick Y is flipped
+**What.** The decoder negates both stick Y bytes, so up reads -1 as on Android. Confirmed on the owner's MOGA Pocket.
 **Why.** moga-uinput flips Y for Linux, which shares Android's convention. It is the only source.
 **Trade-off.** If the Pocket turns out to report up as negative already, this is a one-line change in `ModeADecoder` plus its test. The test screen shows the raw report so the owner can settle it.
 

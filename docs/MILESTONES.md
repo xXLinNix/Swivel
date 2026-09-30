@@ -53,7 +53,7 @@ provide.
    back by itself?
 8. Deny Nearby devices twice. Does the wizard then offer "Open app settings"?
 
-## M2: Mode A link and test screen (goals 1 and 2, Mode A half), **built, awaiting hardware test**
+## M2: Mode A link and test screen (goals 1 and 2, Mode A half), **done**
 
 **Built**
 - `core/protocol`: the command encoder, a stream parser that resynchronises on `0x7A`
@@ -76,7 +76,14 @@ provide.
 **Verified here:** everything but the Android-only glue compiles against Android 17 and
 Compose, and all 51 tests pass. **Not verified:** anything on the phone.
 
-**Hardware test with the MOGA Pocket, please report back**
+**Hardware test** (MOGA Pocket on a Pixel 9 Pro): the link connects and the test screen
+shows every button and both sticks correctly, including the Y direction (D-019). After
+power-cycling the controller it reconnects in about 10 s. Disconnect from the
+notification works, and connecting again is quick. Not yet reported: staying connected
+in the background (step 5), giving up after 5 minutes (step 7), and the low-battery flag
+(step 4 with flat batteries). Fixed after the test: centred sticks read "-0.000".
+
+**The checklist used**
 1. Home → the BD&A row → **Connect**. Allow notifications if asked. Does the test screen
    reach the controls within a few seconds? A notification should say it is connected.
 2. Press every button: A, B, X, Y, L1, R1, Start, Select. Does each light the right lamp?
