@@ -136,3 +136,8 @@ Each one records What, Why and the Trade-off.
 **What.** The list shows installed games (app category "game" or the older isGame flag) and any app that declares `android.hardware.gamepad`, split into "Controller support" (declared) and "All games". Pivot's 24 MOGA-enhanced titles are marked if present. Visibility comes from a `<queries>` launcher intent, not `QUERY_ALL_PACKAGES`.
 **Why.** Since M4 every controller game is playable with the Pocket, while MOGA-SDK games are effectively extinct (M3). Android has no reliable "supports controllers" flag: declaring the gamepad feature is optional and many controller games omit it, so "All games" stays one tap away. The launcher-intent query is the visibility a launcher gets, which the brief asked for instead of `QUERY_ALL_PACKAGES`.
 **Trade-off.** "Controller support" misses games that do not declare it, and "All games" includes touch-only ones. A curated database would be more exact, but it would need network access or constant upkeep, and the brief rules out network calls.
+
+## D-028: Remapping is per game and automatic, when it resumes
+**What.** Chosen by the owner; milestone 6 is on hold. There is one default mapping plus optional per-game mappings. Swivel switches mapping by detecting the game in front, using "Usage access" (`PACKAGE_USAGE_STATS`), which the owner grants once in Settings. It is applied when the virtual gamepad's reports are encoded.
+**Why.** The Pocket's input only reaches games through Swivel's virtual gamepad, so remapping there reaches every game. Usage access detects the foreground game without giving the Shizuku helper any new power (D-026).
+**Trade-off.** It switches a second or so after a game opens, and needs one more special permission.

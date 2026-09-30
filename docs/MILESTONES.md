@@ -196,7 +196,11 @@ not only old MOGA-SDK games (D-027).
 3. Tap a game: it should start, and the Pocket should work in it.
 4. Install or uninstall a game, then come back: the list should update.
 
-## M6: Remapping (goal 5)
+## M6: Remapping (goal 5), **on hold at the owner's request**
+
+Agreed shape when it resumes: per-game mappings with a default, switched automatically by
+the game in front (D-028).
+
 
 Now possible for the Pocket: Swivel writes the virtual gamepad's reports itself, so it can
 remap buttons before they reach any game (D-015, as revised by D-024). Remapping a real
