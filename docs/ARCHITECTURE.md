@@ -11,6 +11,7 @@ data/      ControllerRepository ── the only thing ViewModels talk to
   │           ├─ input/GamepadInputSource     Mode B: InputDevices + key/motion events
   │           ├─ modea/ModeALink              Mode A: RFCOMM socket, watchdog, reconnection
   │           ├─ modea/ModeAService           foreground service (connectedDevice) holding the link
+  │           ├─ games/InstalledGames         launchable apps via <queries>, icons, launching
   │           ├─ bridge/MogaSdkService        exported service answering the old MOGA SDK, fed by the link
   │           └─ virtualpad/VirtualPad        feeds a virtual HID gamepad held open by
   │                 VirtualPadUserService       … a helper Shizuku runs as the shell user
@@ -22,6 +23,7 @@ core/      Plain Kotlin, no android.* imports, all unit-tested on the JVM
               protocol/  Mode A commands, stream parser, report decoder, watchdog, reconnect policy
               bridge/    the MOGA SDK's Binder constants, event mapping, listener registry
               virtualpad/ the gamepad's HID descriptor and report, /dev/uhid messages
+              games/     which installed apps the games list shows, and in what order
 ```
 
 `CorePurityTest` fails if `core` ever imports Android. The Mode A protocol lives in

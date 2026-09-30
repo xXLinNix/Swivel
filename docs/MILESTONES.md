@@ -125,7 +125,7 @@ bridge stays in place, untested. The private build under PowerA's name (D-023) a
 self-test were declined. The goal that matters, playing Play Store games with the Pocket,
 became M4 (D-024).
 
-## M4: The Pocket as a gamepad for Play Store games, **built, awaiting hardware test**
+## M4: The Pocket as a gamepad for Play Store games, **done**
 
 Replaces the old plan's M4 and M5 order (D-024). Android lets no ordinary app create an
 input device, so this uses Shizuku, which the owner approved, together with its
@@ -150,7 +150,11 @@ shell-level access (D-026).
 shell process may open `/dev/uhid` on a Pixel 9 Pro. scrcpy doing exactly that on
 unrooted phones is the evidence for it.
 
-**Hardware test, please report back**
+**Hardware test** (MOGA Pocket, Pixel 9 Pro, Android 17, Shizuku over Wireless debugging):
+it works. Shizuku's shell process may open `/dev/uhid` on this phone, and the Xbox app
+and Android's own navigation both respond to the Pocket as a gamepad.
+
+**The checklist used**
 1. Install **Shizuku** from the Play Store. Open it, choose **Start via Wireless
    debugging** and follow its pairing steps (Developer options → Wireless debugging →
    Pair device with pairing code).
@@ -164,13 +168,31 @@ unrooted phones is the evidence for it.
 6. If it fails, send the section's error text and Logcat filtered by `Swivel` (the pad's
    own process logs as `SwivelPad`).
 
-## M5: Installed games list (goal 4)
+## M5: Installed games list (goal 4), **built, awaiting hardware test**
 
-A curated list of MOGA-enhanced package names. The Pivot APK's bundled icons name 23 of
-them, a start. Visibility comes from one `<queries><package/></queries>` entry per game,
-with no `QUERY_ALL_PACKAGES`, and games launch through `getLaunchIntentForPackage`.
-Detecting unlisted games by scanning APKs for the SDK would need a broad `<queries>` on the
-launcher intent: to be discussed.
+Reshaped by the pivot: it now lists the games the owner can play with the controller,
+not only old MOGA-SDK games (D-027).
+
+**Built**
+- `core/games`: which installed apps are listed and in what order. Games that declare the
+  gamepad feature come first, then the rest under "All games". The 24 games Pivot listed as
+  MOGA-enhanced are marked. 4 new tests (77 in all).
+- `InstalledGames`: reads launchable apps through a `<queries>` launcher intent (no
+  `QUERY_ALL_PACKAGES`), checks each for the game category and the gamepad feature, loads
+  icons into a small cache, and launches games.
+- A Games screen, opened from Home: a controller-readiness line with a Connect button, a
+  "Controller support" / "All games" filter, and tap-to-play. It refreshes whenever it
+  comes back into view.
+
+**Verified here:** compiles against Android 17, and all 77 tests pass. **Not verified:** on the phone.
+
+**Hardware test, please report back**
+1. Home → **Games**. Do your controller games appear under "Controller support"? Which
+   ones are missing there but appear under "All games"?
+2. With the Pocket off, the Controller line should say none is connected and offer
+   **Connect my controller**. Tap it: it should switch to "Ready".
+3. Tap a game: it should start, and the Pocket should work in it.
+4. Install or uninstall a game, then come back: the list should update.
 
 ## M6: Remapping (goal 5)
 

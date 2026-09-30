@@ -72,6 +72,12 @@ gamepad. Every game that supports controllers can then use it.
 While Shizuku runs, Swivel's small helper process has the same privileges as `adb shell`.
 It uses them only to create that one gamepad (docs/DECISIONS.md, D-026).
 
+## Games
+
+Home → **Games** lists your installed games. **Controller support** shows the ones that
+declare it; many others support controllers without saying so, under **All games**. The
+top line says whether games will see your controller, and can connect it. Tap a game to play.
+
 ## Old MOGA-enhanced games (the SDK bridge)
 
 Swivel answers the MOGA SDK the way the Pivot app did, so a game built with it gets
