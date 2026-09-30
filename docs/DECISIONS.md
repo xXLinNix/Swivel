@@ -76,3 +76,8 @@ Each one records What, Why and the Trade-off.
 **What.** Proposed, awaiting the owner. Android gives an ordinary app no way to change the input another app receives from a HID gamepad. There is no input injection without root. An accessibility service can intercept key events but cannot send gamepad events, never sees stick motion, and is heavily restricted by Play policy.
 **Why.** This is how Android's input security works, not a gap in Swivel.
 **Trade-off.** The alternatives: (a) remap only for Mode A games reached through the M3 bridge, where Swivel produces the events itself; (b) buttons to screen taps through an accessibility service (key events only, no sticks); (c) drop goal 5. My recommendation is (a) if M3 is a go, otherwise (c).
+
+## D-016: The owner's controller only speaks Mode A, so Mode A comes next
+**What.** Proposed, awaiting the owner. The owner's controller is part CPFA000253-01, the original 2012 "MOGA Mobile Gaming System", later sold as the MOGA Pocket. As far as I know it has no A/B switch and no HID mode, and advertises a `BD&A` name. If the owner confirms that, milestone 2 (Mode A) becomes the first milestone the owner can use. Milestone 1's hardware test shrinks to pairing it in Mode A and checking that Swivel recognises it as Mode A.
+**Why.** Mode B screens cannot be tested with a controller that has no Mode B. The Pocket also lacks a D-pad, L2/R2 and L3/R3, and uses the first-generation 12-byte reports (commands 65 and 68).
+**Trade-off.** The Mode B path stays unproven on real hardware until someone tries it with a MOGA Pro-family controller or any other Bluetooth gamepad. Any gamepad will do for the test screen.
