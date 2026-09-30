@@ -27,6 +27,11 @@ opened on a Pixel 9 Pro emulator (API 37.1) showing the home screen. All 29 unit
 **Not yet verified:** anything that needs real Bluetooth, which the emulator cannot
 provide.
 
+**Found in hardware testing** (MOGA Pocket, part CPFA000253-01, on a Pixel 9 Pro)
+- The Pocket has no A/B switch and pairs as `BD&A`, as the research predicted (D-016).
+- Fixed: the wizard hung after the PIN in Mode A, because Bluetooth broadcasts never
+  reached the app (D-017).
+
 **Hardware test, please report back**
 1. Home with nothing paired: no crash, nothing listed.
 2. Switch on **B**, Pair → Mode B → Find my controller. Does Android's list show it, and

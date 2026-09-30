@@ -2,6 +2,7 @@ package io.github.xxlinnix.swivel.ui.pairing
 
 import android.content.Intent
 import android.content.IntentSender
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import io.github.xxlinnix.swivel.core.detect.MogaNames
@@ -19,6 +20,8 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -45,9 +48,14 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
     /** Service lists from SDP lookups made during this wizard, by address. */
     private val freshUuids = mutableMapOf<String, Set<String>>()
 
+    private var bondWatchJob: Job? = null
+
     init {
         viewModelScope.launch { repository.bluetoothEvents().collect { onBluetoothEvent(it) } }
         viewModelScope.launch { repository.gamepads.collect { conclude(timedOut = false) } }
+        viewModelScope.launch {
+            state.map { it.step }.distinctUntilChanged().collect { Log.i(TAG, "step: $it") }
+        }
     }
 
     fun chooseMode(target: PairingTarget) {
@@ -68,6 +76,7 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
     }
 
     fun restart() {
+        bondWatchJob?.cancel()
         stopSearching()
         timeoutJob?.cancel()
         _state.update { PairingUiState(companionAvailable = repository.companionAvailable) }
@@ -130,8 +139,34 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
             verify(address, name)
         } else if (repository.createBond(address)) {
             _state.update { it.copy(step = PairingStep.Bonding(address, name)) }
+            watchBond(address, name)
         } else {
             _state.update { it.copy(step = PairingStep.Failed(PairingProblem.BOND_DID_NOT_START)) }
+        }
+    }
+
+    /**
+     * Checks the bond directly while bonding, in case its broadcast never arrives. The
+     * first hardware test hung here for exactly that reason. Gives up after
+     * [BOND_TIMEOUT_MS], which leaves time to type a PIN.
+     */
+    private fun watchBond(address: String, name: String?) {
+        bondWatchJob?.cancel()
+        bondWatchJob = viewModelScope.launch {
+            var waited = 0L
+            while (waited < BOND_TIMEOUT_MS) {
+                delay(BOND_POLL_MS)
+                waited += BOND_POLL_MS
+                val step = _state.value.step
+                if (step !is PairingStep.Bonding || step.address != address) return@launch
+                if (repository.paired(address) != null) {
+                    verify(address, repository.nameOf(address) ?: name)
+                    return@launch
+                }
+            }
+            if (_state.value.step == PairingStep.Bonding(address, name)) {
+                _state.update { it.copy(step = PairingStep.Failed(PairingProblem.BOND_FAILED)) }
+            }
         }
     }
 
@@ -196,6 +231,7 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
     }
 
     private fun verify(address: String, name: String?) {
+        bondWatchJob?.cancel()
         _state.update { it.copy(step = PairingStep.Verifying(address, name)) }
         repository.refreshServices(address)
         timeoutJob?.cancel()
@@ -245,7 +281,12 @@ class PairingViewModel(private val repository: ControllerRepository) : ViewModel
     }
 
     private companion object {
+        const val TAG = "Swivel"
+
         /** Long enough for a controller to wake, connect and answer SDP. */
         const val VERIFY_TIMEOUT_MS = 20_000L
+
+        const val BOND_POLL_MS = 1_000L
+        const val BOND_TIMEOUT_MS = 60_000L
     }
 }

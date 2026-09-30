@@ -13,6 +13,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.os.ParcelUuid
 import android.os.Parcelable
+import android.util.Log
 import io.github.xxlinnix.swivel.core.detect.MogaNames
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -130,7 +131,9 @@ class BluetoothGateway(context: Context) {
     fun events(): Flow<BluetoothEvent> = callbackFlow {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                toEvent(intent)?.let { trySend(it) }
+                val event = toEvent(intent) ?: return
+                Log.d(TAG, "event: $event")
+                trySend(event)
             }
         }
         val filter = IntentFilter().apply {
@@ -142,12 +145,12 @@ class BluetoothGateway(context: Context) {
             addAction(BluetoothDevice.ACTION_FOUND)
             addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED)
         }
-        // These are all protected system broadcasts, which reach a non-exported receiver.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            context.registerReceiver(receiver, filter)
-        }
+        // Registered without an export flag, as Android asks for receivers of system
+        // broadcasts only (developer.android.com/about/versions/14/behavior-changes-14).
+        // RECEIVER_NOT_EXPORTED drops them: they come from the Bluetooth process, not the
+        // system server, so the wizard never heard that bonding finished. They are all
+        // protected broadcasts, which no app can forge.
+        context.registerReceiver(receiver, filter)
         awaitClose { context.unregisterReceiver(receiver) }
     }
 
@@ -211,6 +214,11 @@ class BluetoothGateway(context: Context) {
 
     private fun Array<ParcelUuid>?.toUuidStrings(): Set<String> =
         orEmpty().map { it.uuid.toString().lowercase() }.toSet()
+
+    private companion object {
+        /** Filter Logcat on this tag to follow pairing. */
+        const val TAG = "Swivel"
+    }
 }
 
 /** Intent.getParcelableExtra without the deprecation dance at every call site. */
